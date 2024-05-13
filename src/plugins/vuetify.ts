@@ -26,7 +26,7 @@ const vuetify = createVuetify({
                     // Vuetify 2 でベースカラーを元に自動生成されたカラーパレットを移植したもの
                     // 各 -lighten / -darken バリアントと accent は、Vuetify 3 のデフォルトカラーパレットには存在しない
                     'primary': '#41a2ec',
-                    'secondary': '#e33157',
+                    'secondary': '#41a2ec',
                     'accent': '#ff4081',
                     // Success / Warning / Error / Info
                     // Vuetify 2 のデフォルトのカラーパレットを移植したもの
