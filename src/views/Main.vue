@@ -106,6 +106,12 @@ const selectedConfig = ref<File | File[] | undefined>(undefined);
 const selectedStyleVectors = ref<File | File[] | undefined>(undefined);
 const selectedAivm = ref<File | File[] | undefined>(undefined);
 
+// 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
+watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors, selectedAivm], () => {
+    aivmManifest.value = structuredClone(DefaultAivmManifest);
+    speakerTabIndex.value = 0;
+});
+
 // 1. ファイル選択 で全てのファイルが選択されているかどうか
 const isAllFilesSelected = computed(() => {
     // 「各ファイルから新規生成」の場合
@@ -120,12 +126,6 @@ const isAllFilesSelected = computed(() => {
     } else {
         return selectedAivm.value !== undefined;
     }
-});
-
-// 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
-watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors, selectedAivm], () => {
-    aivmManifest.value = structuredClone(DefaultAivmManifest);
-    speakerTabIndex.value = 0;
 });
 
 // 2. メタデータ編集 での状態

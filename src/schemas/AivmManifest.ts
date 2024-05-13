@@ -1,7 +1,7 @@
 
 import { z } from 'zod';
 
-import Utils from '@/utils';
+import Utils from '@/utils/Utils';
 
 
 /* AIVM マニフェストの型 */
@@ -52,8 +52,8 @@ export const AivmManifestSchema = z.object({
             })),
             // スタイルの ID (この話者内で一意な 0 から始まる連番で、0 ~ 31 の範囲)
             local_id: z.number().int().min(0).max(31),
-        })).nonempty(),
-    })).nonempty(),
+        })),
+    })),
 });
 
 /* デフォルト表示用の AIVM マニフェスト */

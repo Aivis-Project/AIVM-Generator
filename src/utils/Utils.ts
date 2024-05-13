@@ -23,24 +23,6 @@ export default class Utils {
 
 
     /**
-     * バイト単位の数値をフォーマットする
-     * @param bytes バイト数
-     * @returns フォーマットされた文字列 (例: 1.23KB)
-     */
-    static formatBytes(bytes: number): string {
-        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        let unitIndex = 0;
-
-        while (bytes >= 1000 && unitIndex < units.length - 1) {
-            bytes /= 1000;
-            unitIndex++;
-        }
-
-        return `${bytes.toFixed(2)}${units[unitIndex]}`;
-    }
-
-
-    /**
      * async/await でスリープ的なもの
      * @param seconds 待機する秒数 (ミリ秒単位ではないので注意)
      * @returns Promise を返すので、await sleep(1); のように使う
