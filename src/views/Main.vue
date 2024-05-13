@@ -1,5 +1,9 @@
 <template>
     <main>
+        <Description class="mt-6">
+            <a class="link" href="https://github.com/Aivis-Project/AIVM-Specification" target="_blank">AIVM (Aivis Voice Model)</a> は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
+            <a class="link" href="https://speech.aivis-project.com" target="_blank">AivisSpeech</a> をはじめとした対応ソフトウェアに AIVM ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
+        </Description>
         <Heading1 class="mt-6">1. ファイル選択</Heading1>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
@@ -76,10 +80,10 @@
             </v-window-item>
          </v-window>
         <Heading1 class="mt-6">3. AIVM ファイルを生成</Heading1>
-        <div class="mt-5 d-flex justify-content-center">
+        <div class="mt-5 d-flex justify-center">
             <ActionButton secondary icon="fluent:save-20-filled"
                 height="45px" font_size="16px" :disabled="!isAllFilesSelected">
-                上記メタデータで AIVM ファイルを生成
+                上記メタデータで AIVM ファイル (.aivm) を生成
             </ActionButton>
         </div>
     </main>
@@ -89,6 +93,7 @@
 import { computed, ref, watch } from 'vue';
 
 import ActionButton from '@/components/ActionButton.vue';
+import Description from '@/components/Description.vue';
 import Heading1 from '@/components/Heading1.vue';
 import { AivmManifest, DefaultAivmManifest } from '@/schemas/AivmManifest';
 import Utils from '@/utils';
