@@ -81,7 +81,7 @@ html {
 
 // アプリケーションのルート
 .v-application {
-    max-width: 950px;
+    max-width: 1100px;
     min-height: 100vh;
     min-height: 100dvh;
     margin-left: auto;
@@ -105,10 +105,6 @@ html {
 // 各ページのルート要素は必ず <main> にする必要がある
 // スタイルは各レイアウトにて一部上書きされる
 main {
-    display: flex !important;
-    flex-direction: column;
-    align-self: baseline;
-    flex-grow: 1;
     min-height: 100%;
     padding-left: 20px;
     padding-right: 20px;
