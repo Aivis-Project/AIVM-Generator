@@ -17,6 +17,11 @@ export default class Utils {
     })();
 
 
+    // semver の正規表現
+    // ref: https://semver.org/lang/ja/
+    static readonly SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+
     /**
      * バイト単位の数値をフォーマットする
      * @param bytes バイト数

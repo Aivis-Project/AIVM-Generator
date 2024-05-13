@@ -108,7 +108,7 @@ main {
     min-height: 100%;
     padding-left: 20px;
     padding-right: 20px;
-    padding-bottom: 28px;
+    padding-bottom: 36px;
 }
 
 // ***** Vuetify 3 のスタイルの上書き *****

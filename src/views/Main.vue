@@ -28,14 +28,24 @@
          </v-window>
         <Heading1 class="mt-0">2. メタデータ編集</Heading1>
         <v-row class="ma-0 mt-4">
-            <v-col class="pa-0" cols="12" md="7">
+            <v-col class="pa-0 pr-4" cols="12" md="7">
                 <v-text-field variant="solo-filled" hide-details
-                    label="音声合成モデルの名前" :disabled="!isAllFilesSelected" v-model="modelName" />
-                <v-textarea class="mt-4" variant="solo-filled" hide-details
-                    label="音声合成モデルの説明" :disabled="!isAllFilesSelected" v-model="modelDescription" />
+                    label="音声合成モデルの名前" :disabled="!isAllFilesSelected" v-model="aivmManifest.name" />
+                <v-textarea class="mt-4" variant="solo-filled" rows="3" hide-details
+                    label="音声合成モデルの説明" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
+                <v-textarea class="mt-4" variant="solo-filled" rows="3" hide-details
+                    label="音声合成モデルの利用規約 (Markdown 形式)" :disabled="!isAllFilesSelected" v-model="aivmManifest.terms_of_use" />
             </v-col>
-            <v-col class="pa-0 pl-8" cols="12" md="5">
-                <AivmDetail />
+            <v-col class="pa-0 pl-4" cols="12" md="5">
+                <v-text-field variant="solo-filled" hide-details disabled
+                    label="AIVM バージョン" v-model="aivmManifest.manifest_version" />
+                <v-text-field variant="solo-filled" class="mt-4" hide-details disabled
+                    label="音声合成モデルのアーキテクチャ" v-model="aivmManifest.model_architecture" />
+                <v-text-field variant="solo-filled" class="mt-4" hide-details disabled
+                    label="音声合成モデルの UUID" v-model="aivmManifest.uuid" />
+                <v-text-field variant="solo-filled" class="mt-4"
+                    :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
+                    label="音声合成モデルのバージョン" :disabled="!isAllFilesSelected" v-model="aivmManifest.version" />
             </v-col>
         </v-row>
     </main>
@@ -45,7 +55,8 @@
 import { computed, ref } from 'vue';
 
 import Heading1 from '@/components/Heading1.vue';
-import AivmDetail from '@/components/Main/AivmDetail.vue';
+import { AivmManifest, DefaultAivmManifest } from '@/schemas/AivmManifest';
+import Utils from '@/utils';
 
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
@@ -72,8 +83,7 @@ const isAllFilesSelected = computed(() => {
 });
 
 // 2. メタデータ編集 での状態
-const modelName = ref('');
-const modelDescription = ref('');
+// デフォルト値は DefaultAivmManifest で定義されている値
+const aivmManifest = ref<AivmManifest>(structuredClone(DefaultAivmManifest));
 
 </script>
-
