@@ -9,7 +9,7 @@
         </v-tabs>
          <v-window v-model="selectionTypeTabIndex">
             <v-window-item class="pt-5 pb-6">
-                <v-select variant="solo-filled" hide-details :items="['Style-Bert-VITS2 JP-Extra', 'Style-Bert-VITS2']"
+                <v-select variant="solo-filled" hide-details :items="['Style-Bert-VITS2 (JP-Extra)', 'Style-Bert-VITS2']"
                     label="音声合成アーキテクチャを選択" v-model="selectedArchitecture" />
                 <v-file-input class="mt-4" variant="solo-filled" show-size hide-details
                     label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="selectedModel" />
@@ -23,16 +23,16 @@
             </v-window-item>
             <v-window-item class="pt-5 pb-5">
                 <v-file-input variant="solo-filled" show-size hide-details
-                    label="AIVM 音声合成モデルファイル (.aivm) を選択" accept=".aivm" v-model="selectedAivm" />
+                    label="AIVM ファイル (.aivm) を選択" accept=".aivm" v-model="selectedAivm" />
             </v-window-item>
          </v-window>
         <Heading1 class="mt-0">2. メタデータ編集</Heading1>
         <v-row class="ma-0 mt-4">
             <v-col class="pa-0" cols="12" md="7">
                 <v-text-field variant="solo-filled" hide-details
-                    label="音声合成モデルの名前" :disabled="!isAllFilesSelected" v-model="speakerName" />
+                    label="音声合成モデルの名前" :disabled="!isAllFilesSelected" v-model="modelName" />
                 <v-textarea class="mt-4" variant="solo-filled" hide-details
-                    label="音声合成モデルの説明" :disabled="!isAllFilesSelected" v-model="speakerDescription" />
+                    label="音声合成モデルの説明" :disabled="!isAllFilesSelected" v-model="modelDescription" />
             </v-col>
             <v-col class="pa-0 pl-8" cols="12" md="5">
                 <AivmDetail />
@@ -49,7 +49,7 @@ import AivmDetail from '@/components/Main/AivmDetail.vue';
 
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
-const selectedArchitecture = ref<'Style-Bert-VITS2 JP-Extra' | 'Style-Bert-VITS2'>('Style-Bert-VITS2 JP-Extra');
+const selectedArchitecture = ref<'Style-Bert-VITS2 (JP-Extra)' | 'Style-Bert-VITS2'>('Style-Bert-VITS2 (JP-Extra)');
 const selectedModel = ref<File | File[] | undefined>(undefined);
 const selectedConfig = ref<File | File[] | undefined>(undefined);
 const selectedStyleVectors = ref<File | File[] | undefined>(undefined);
@@ -72,8 +72,8 @@ const isAllFilesSelected = computed(() => {
 });
 
 // 2. メタデータ編集 での状態
-const speakerName = ref('');
-const speakerDescription = ref('');
+const modelName = ref('');
+const modelDescription = ref('');
 
 </script>
 
