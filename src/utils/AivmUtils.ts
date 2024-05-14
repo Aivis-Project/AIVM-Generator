@@ -1,7 +1,6 @@
 
 import * as uuid from 'uuid';
 
-import Message from '@/message';
 import { AivmMetadata, AivmManifest, AivmManifestSchema, DefaultAivmManifest } from '@/schemas/AivmManifest';
 import { StyleBertVITS2HyperParameters, StyleBertVITS2HyperParametersSchema } from '@/schemas/StyleBertVITS2';
 
@@ -45,8 +44,7 @@ export default class AivmUtils {
             try {
                 hyper_parameters = StyleBertVITS2HyperParametersSchema.parse(JSON.parse(hyper_parameters_content));
             } catch (error) {
-                Message.error(`${model_architecture} のハイパーパラメータファイルの形式が正しくありません。`);
-                throw new Error('ハイパーパラメータファイルの形式が正しくありません。');
+                throw new Error(`${model_architecture} のハイパーパラメータファイルの形式が正しくありません。\n${error}`);
             }
 
             // スタイルベクトルファイルを読み込む（存在する場合）
@@ -65,8 +63,10 @@ export default class AivmUtils {
             // spk2id の内容を反映
             manifest.speakers = Object.keys(hyper_parameters.data.spk2id).map((speaker_name, speaker_index) => {
                 return {
+                    // ハイパーパラメータに記載の話者名を使用
                     name: speaker_name,
-                    supported_languages: ['ja'],
+                    // JP-Extra の場合は日本語のみ、それ以外は日本語・英語・中国語をサポート
+                    supported_languages: model_architecture === 'Style-Bert-VITS2 (JP-Extra)' ? ['ja'] : ['ja', 'en', 'zh'],
                     uuid: uuid.v4(),
                     local_id: speaker_index,
                     version: '1.0.0',
@@ -89,7 +89,6 @@ export default class AivmUtils {
             };
         }
 
-        Message.error(`音声合成モデルアーキテクチャ ${model_architecture} には対応していません。`);
         throw new Error(`音声合成モデルアーキテクチャ ${model_architecture} には対応していません。`);
     }
 
@@ -109,14 +108,18 @@ export default class AivmUtils {
         const header_size = data_view.getBigUint64(0, true);
 
         // ヘッダー部分を抽出
-        const header_bytes = new Uint8Array(array_buffer, 8, Number(header_size));
+        let header_bytes: Uint8Array;
+        try {
+            header_bytes = new Uint8Array(array_buffer, 8, Number(header_size));
+        } catch (error) {
+            throw new Error('AIVM ファイルの形式が正しくありません。AIVM ファイル以外のファイルが指定されている可能性があります。');
+        }
         const header_text = new TextDecoder().decode(header_bytes);
         const header_json = JSON.parse(header_text);
 
         // "__metadata__" キーから AIVM メタデータを取得
         const metadata = header_json['__metadata__'];
         if (!metadata || !metadata['aivm_manifest']) {
-            Message.error('AIVM マニフェストが見つかりません。');
             throw new Error('AIVM マニフェストが見つかりません。');
         }
 
@@ -125,7 +128,6 @@ export default class AivmUtils {
         try {
             aivm_manifest = AivmManifestSchema.parse(JSON.parse(metadata['aivm_manifest']));
         } catch (error) {
-            Message.error('AIVM マニフェストの形式が正しくありません。');
             throw new Error('AIVM マニフェストの形式が正しくありません。');
         }
 
@@ -136,15 +138,12 @@ export default class AivmUtils {
                 if (aivm_manifest.model_architecture.startsWith('Style-Bert-VITS2')) {
                     aivm_hyper_parameters = StyleBertVITS2HyperParametersSchema.parse(JSON.parse(metadata['aivm_hyper_parameters']));
                 } else {
-                    Message.error(`モデルアーキテクチャ ${aivm_manifest.model_architecture} のハイパーパラメータには対応していません。`);
                     throw new Error(`モデルアーキテクチャ ${aivm_manifest.model_architecture} のハイパーパラメータには対応していません。`);
                 }
             } catch (error) {
-                Message.error('ハイパーパラメータの形式が正しくありません。');
                 throw new Error('ハイパーパラメータの形式が正しくありません。');
             }
         } else {
-            Message.error('ハイパーパラメータが見つかりません。');
             throw new Error('ハイパーパラメータが見つかりません。');
         }
 
@@ -160,7 +159,6 @@ export default class AivmUtils {
                     aivm_style_vectors[i] = binary_string.charCodeAt(i);
                 }
             } catch (error) {
-                Message.error('スタイルベクトルのデコードに失敗しました。');
                 throw new Error('スタイルベクトルのデコードに失敗しました。');
             }
         }

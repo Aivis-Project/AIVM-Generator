@@ -4,19 +4,6 @@
  */
 export default class Utils {
 
-    // バックエンドの API のベース URL
-    // Worker からも参照できるように self.location を使う
-    static readonly api_base_url = (() => {
-        if (import.meta.env.DEV === true) {
-            // デバッグ時はポートを 3100 に強制する
-            return `${self.location.protocol}//${self.location.hostname}:3100/api`;
-        } else {
-            // ビルド後は同じポートを使う
-            return `${self.location.protocol}//${self.location.host}/api`;
-        }
-    })();
-
-
     // semver の正規表現
     // ref: https://semver.org/lang/ja/
     static readonly SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;

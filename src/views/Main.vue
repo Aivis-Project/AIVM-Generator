@@ -95,6 +95,7 @@ import { computed, ref, watch } from 'vue';
 import ActionButton from '@/components/ActionButton.vue';
 import Description from '@/components/Description.vue';
 import Heading1 from '@/components/Heading1.vue';
+import Message from '@/message';
 import { AivmMetadata, DefaultAivmManifest } from '@/schemas/AivmManifest';
 import Utils from '@/utils';
 import AivmUtils from '@/utils/AivmUtils';
@@ -136,20 +137,22 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
             AivmUtils.generateAivmMetadata(
                 selectedArchitecture.value,
                 selectedConfig.value as File,
-                selectedStyleVectors.value as File | null
+                selectedStyleVectors.value as File | null,
             ).then((metadata) => {
                 aivmMetadata.value = metadata;
             }).catch((error) => {
-                console.error('AIVM メタデータの生成に失敗しました:', error);
+                Message.error(error.message);
+                console.error(error);
             });
         } else {
             // 「既存の .aivm ファイルを選択」の場合
             AivmUtils.loadAivmMetadata(
-                selectedAivm.value as File
+                selectedAivm.value as File,
             ).then((metadata) => {
                 aivmMetadata.value = metadata;
             }).catch((error) => {
-                console.error('AIVM メタデータの読み込みに失敗しました:', error);
+                Message.error(error.message);
+                console.error(error);
             });
         }
     }
