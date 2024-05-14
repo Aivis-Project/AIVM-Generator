@@ -1,5 +1,5 @@
 
-import uuid from 'uuid';
+import * as uuid from 'uuid';
 
 import Message from '@/message';
 import { AivmMetadata, AivmManifest, AivmManifestSchema, DefaultAivmManifest } from '@/schemas/AivmManifest';

@@ -95,8 +95,9 @@ import { computed, ref, watch } from 'vue';
 import ActionButton from '@/components/ActionButton.vue';
 import Description from '@/components/Description.vue';
 import Heading1 from '@/components/Heading1.vue';
-import { AivmManifest, DefaultAivmManifest } from '@/schemas/AivmManifest';
+import { AivmMetadata, DefaultAivmManifest } from '@/schemas/AivmManifest';
 import Utils from '@/utils';
+import AivmUtils from '@/utils/AivmUtils';
 
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
@@ -105,12 +106,6 @@ const selectedModel = ref<File | File[] | undefined>(undefined);
 const selectedConfig = ref<File | File[] | undefined>(undefined);
 const selectedStyleVectors = ref<File | File[] | undefined>(undefined);
 const selectedAivm = ref<File | File[] | undefined>(undefined);
-
-// 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
-watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors, selectedAivm], () => {
-    aivmManifest.value = structuredClone(DefaultAivmManifest);
-    speakerTabIndex.value = 0;
-});
 
 // 1. ファイル選択 で全てのファイルが選択されているかどうか
 const isAllFilesSelected = computed(() => {
@@ -128,9 +123,44 @@ const isAllFilesSelected = computed(() => {
     }
 });
 
-// 2. メタデータ編集 での状態
-// デフォルト値は DefaultAivmManifest で定義されている値
-const aivmManifest = ref<AivmManifest>(structuredClone(DefaultAivmManifest));
+// 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
+// その際全てのファイルが選択されていれば、 AIVM メタデータの生成 or 再読み込みを実行する
+watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors, selectedAivm], () => {
+    aivmMetadata.value = null;
+    speakerTabIndex.value = 0;
+
+    // 全てのファイルが選択されている場合
+    if (isAllFilesSelected.value) {
+        if (selectionTypeTabIndex.value === 0) {
+            // 「各ファイルから新規生成」の場合
+            AivmUtils.generateAivmMetadata(
+                selectedArchitecture.value,
+                selectedConfig.value as File,
+                selectedStyleVectors.value as File | null
+            ).then((metadata) => {
+                aivmMetadata.value = metadata;
+            }).catch((error) => {
+                console.error('AIVM メタデータの生成に失敗しました:', error);
+            });
+        } else {
+            // 「既存の .aivm ファイルを選択」の場合
+            AivmUtils.loadAivmMetadata(
+                selectedAivm.value as File
+            ).then((metadata) => {
+                aivmMetadata.value = metadata;
+            }).catch((error) => {
+                console.error('AIVM メタデータの読み込みに失敗しました:', error);
+            });
+        }
+    }
+});
+
+// 2. メタデータ編集 での AIVM メタデータの状態
+const aivmMetadata = ref<AivmMetadata | null>(null);
+const aivmManifest = computed(() => {
+    // AIVM メタデータが読み込まれていない場合はデフォルト値を返す
+    return aivmMetadata.value?.aivm_manifest ?? structuredClone(DefaultAivmManifest);
+});
 
 // 2. メタデータ編集 で選択されている話者のタブインデックス
 const speakerTabIndex = ref(0);
