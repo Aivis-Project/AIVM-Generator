@@ -9,11 +9,13 @@
         "lint": "eslint . --fix --ignore-path .gitignore"
     },
     "dependencies": {
+        "@types/uuid": "^9.0.8",
         "assert": "^2.1.0",
         "axios": "^1.6.8",
         "nanoid": "^5.0.7",
         "pinia": "^2.1.7",
         "tslib": "^2.6.2",
+        "uuid": "^9.0.1",
         "vue": "3.4.12",
         "vue-router": "^4.3.2",
         "vuetify": "^3.5.17",
