@@ -55,9 +55,10 @@ export default class AivmUtils {
             }
 
             // デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
+            // モデルアーキテクチャは Style-Bert-VITS2 系であれば異なる値が指定されても動作するように、ハイパーパラメータの値を使用する
             const manifest = structuredClone(DefaultAivmManifest);
             manifest.name = hyper_parameters.model_name;
-            manifest.model_architecture = model_architecture;
+            manifest.model_architecture = hyper_parameters.data.use_jp_extra ? 'Style-Bert-VITS2 (JP-Extra)' : 'Style-Bert-VITS2';
             manifest.uuid = uuid.v4();
 
             // spk2id の内容を反映
@@ -66,7 +67,7 @@ export default class AivmUtils {
                     // ハイパーパラメータに記載の話者名を使用
                     name: speaker_name,
                     // JP-Extra の場合は日本語のみ、それ以外は日本語・英語・中国語をサポート
-                    supported_languages: model_architecture === 'Style-Bert-VITS2 (JP-Extra)' ? ['ja'] : ['ja', 'en', 'zh'],
+                    supported_languages: hyper_parameters.data.use_jp_extra ? ['ja'] : ['ja', 'en', 'zh'],
                     uuid: uuid.v4(),
                     local_id: speaker_index,
                     version: '1.0.0',
