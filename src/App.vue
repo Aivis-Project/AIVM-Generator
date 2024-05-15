@@ -60,6 +60,9 @@ a, a:link, a:visited, a:hover, a:active {
 }
 
 // 全体のスタイル
+:root {
+    font-size: 14px;
+}
 html {
     overflow-y: auto !important;
     touch-action: manipulation;
@@ -81,13 +84,13 @@ html {
 
 // アプリケーションのルート
 .v-application {
-    max-width: 1100px;
+    max-width: 1000px;
     min-height: 100vh;
     min-height: 100dvh;
     margin-left: auto;
     margin-right: auto;
     font-family: 'LINE Seed JP', 'Twemoji', sans-serif;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 500;
     overflow-x: clip;  // clip なら position: sticky; が効く
     -webkit-font-smoothing: antialiased;
