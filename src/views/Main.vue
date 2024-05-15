@@ -79,6 +79,9 @@
                 </v-row>
             </v-window-item>
          </v-window>
+        <v-textarea variant="solo-filled" class="mt-4" rows="3" hide-details readonly
+            label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
+            :model-value="JSON.stringify(aivmMetadata?.aivm_hyper_parameters, null, 4)" />
         <Heading1 class="mt-6">3. AIVM ファイルを生成</Heading1>
         <div class="mt-5 d-flex justify-center">
             <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="16px"
