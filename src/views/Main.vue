@@ -92,7 +92,7 @@
          </v-window>
         <v-textarea variant="solo-filled" class="mt-4" density="compact" rows="8" hide-details readonly
             label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
-            :model-value="JSON.stringify(aivmMetadata?.aivm_hyper_parameters, null, 4)" />
+            :model-value="JSON.stringify(aivmMetadata?.hyper_parameters, null, 4)" />
         <Heading2 class="mt-5">3. AIVM ファイルを生成</Heading2>
         <div class="mt-4 d-flex justify-center">
             <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="14px"
@@ -160,7 +160,7 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
             });
         } else {
             // 「既存の .aivm ファイルを選択」の場合
-            AivmUtils.loadAivmMetadata(
+            AivmUtils.readAivmMetadata(
                 selectedAivm.value as File,
             ).then((metadata) => {
                 aivmMetadata.value = metadata;
@@ -176,7 +176,7 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
 const aivmMetadata = ref<AivmMetadata | null>(null);
 const aivmManifest = computed(() => {
     // AIVM メタデータが読み込まれていない場合はデフォルト値を返す
-    return aivmMetadata.value?.aivm_manifest ?? structuredClone(DefaultAivmManifest);
+    return aivmMetadata.value?.manifest ?? structuredClone(DefaultAivmManifest);
 });
 
 // 2. メタデータ編集 で選択されている話者のタブインデックス

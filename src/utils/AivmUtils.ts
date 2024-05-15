@@ -89,9 +89,9 @@ export default class AivmUtils {
             });
 
             return {
-                aivm_manifest: manifest,
-                aivm_hyper_parameters: hyper_parameters,
-                aivm_style_vectors: style_vectors,
+                manifest: manifest,
+                hyper_parameters: hyper_parameters,
+                style_vectors: style_vectors,
             };
         }
 
@@ -104,7 +104,7 @@ export default class AivmUtils {
      * @param aivm_file AIVM ファイル
      * @returns AIVM メタデータ
      */
-    static async loadAivmMetadata(aivm_file: File): Promise<AivmMetadata> {
+    static async readAivmMetadata(aivm_file: File): Promise<AivmMetadata> {
 
         // ファイルの内容を読み込む
         const array_buffer = await aivm_file.arrayBuffer();
@@ -165,9 +165,9 @@ export default class AivmUtils {
         }
 
         return {
-            aivm_manifest,
-            aivm_hyper_parameters,
-            aivm_style_vectors,
+            manifest: aivm_manifest,
+            hyper_parameters: aivm_hyper_parameters,
+            style_vectors: aivm_style_vectors,
         };
     }
 
@@ -180,15 +180,50 @@ export default class AivmUtils {
      */
     static async writeAivmMetadata(aivm_file: File, aivm_metadata: AivmMetadata): Promise<File> {
 
+        // Style-Bert-VITS2 系の音声合成モデルでは、AIVM マニフェストの内容をハイパーパラメータにも反映する
+        if (aivm_metadata.manifest.model_architecture.startsWith('Style-Bert-VITS2')) {
+
+            // モデル名を反映
+            aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name;
+
+            // 話者名を反映
+            const new_spk2id: { [key: string]: number } = {};
+            for (const speaker of aivm_metadata.manifest.speakers) {
+                const local_id = speaker.local_id;
+                const old_key = Object.keys(aivm_metadata.hyper_parameters.data.spk2id).find(
+                    key => aivm_metadata.hyper_parameters.data.spk2id[key] === local_id
+                );
+                if (old_key) {
+                    new_spk2id[speaker.name] = local_id;
+                }
+            }
+            aivm_metadata.hyper_parameters.data.spk2id = new_spk2id;
+
+            // スタイル名を反映
+            const new_style2id: { [key: string]: number } = {};
+            for (const speaker of aivm_metadata.manifest.speakers) {
+                for (const style of speaker.styles) {
+                    const local_id = style.local_id;
+                    const old_key = Object.keys(aivm_metadata.hyper_parameters.data.style2id).find(
+                        key => aivm_metadata.hyper_parameters.data.style2id[key] === local_id
+                    );
+                    if (old_key) {
+                        new_style2id[style.name] = local_id;
+                    }
+                }
+            }
+            aivm_metadata.hyper_parameters.data.style2id = new_style2id;
+        }
+
         // AIVM メタデータをシリアライズ
         // Safetensors のメタデータ領域はネストなしの string から string への map でなければならないため、
         // すべてのメタデータを文字列にシリアライズして格納する
         const metadata: { [key: string]: string } = {};
-        metadata['aivm_manifest'] = JSON.stringify(aivm_metadata.aivm_manifest);
-        metadata['aivm_hyper_parameters'] = JSON.stringify(aivm_metadata.aivm_hyper_parameters);
-        if (aivm_metadata.aivm_style_vectors) {
+        metadata['aivm_manifest'] = JSON.stringify(aivm_metadata.manifest);
+        metadata['aivm_hyper_parameters'] = JSON.stringify(aivm_metadata.hyper_parameters);
+        if (aivm_metadata.style_vectors) {
             // スタイルベクトルが存在する場合は Base64 エンコードして追加
-            metadata['aivm_style_vectors'] = Base64.fromUint8Array(aivm_metadata.aivm_style_vectors);
+            metadata['aivm_style_vectors'] = Base64.fromUint8Array(aivm_metadata.style_vectors);
         }
 
         // AIVM ファイルの内容を一度に読み取る

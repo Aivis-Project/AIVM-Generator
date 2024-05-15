@@ -8,11 +8,11 @@ import Utils from '@/utils/Utils';
 /* AIVM ファイルに含まれる全てのメタデータのシリアライズ後の型 */
 export type AivmMetadata = {
     // AIVM マニフェストの情報
-    aivm_manifest: AivmManifest,
+    manifest: AivmManifest,
     // ハイパーパラメータの情報
-    aivm_hyper_parameters: StyleBertVITS2HyperParameters,
+    hyper_parameters: StyleBertVITS2HyperParameters,
     // スタイルベクトルの情報
-    aivm_style_vectors?: Uint8Array,
+    style_vectors?: Uint8Array,
 };
 
 /* AIVM マニフェストの型 */
