@@ -2,7 +2,7 @@
 import { Base64 } from 'js-base64';
 import * as uuid from 'uuid';
 
-import { AivmMetadata, AivmManifest, AivmManifestSchema, DefaultAivmManifest } from '@/schemas/AivmManifest';
+import { AivmMetadata, AivmManifest, AivmManifestSchema, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from '@/schemas/AivmManifest';
 import { StyleBertVITS2HyperParameters, StyleBertVITS2HyperParametersSchema } from '@/schemas/StyleBertVITS2';
 
 
@@ -80,7 +80,7 @@ export default class AivmUtils {
                     styles: Object.keys(hyper_parameters.data.style2id).map((style_name, style_index) => {
                         return {
                             name: style_name,
-                            icon: '',
+                            icon: DEFAULT_ICON_DATA_URL,
                             voice_samples: [],
                             local_id: style_index,
                         };
