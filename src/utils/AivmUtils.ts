@@ -2,7 +2,8 @@
 import { Base64 } from 'js-base64';
 import * as uuid from 'uuid';
 
-import { AivmMetadata, AivmManifest, AivmManifestSchema, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from '@/schemas/AivmManifest';
+import { AivmMetadata, AivmManifest, AivmManifestSchema, DefaultAivmManifest } from '@/schemas/AivmManifest';
+import { DEFAULT_ICON_DATA_URL } from '@/schemas/AivmManifestConstants';
 import { StyleBertVITS2HyperParameters, StyleBertVITS2HyperParametersSchema } from '@/schemas/StyleBertVITS2';
 
 
@@ -118,6 +119,7 @@ export default class AivmUtils {
         try {
             header_bytes = new Uint8Array(array_buffer, 8, Number(header_size));
         } catch (error) {
+            console.error(error);
             throw new Error('AIVM ファイルの形式が正しくありません。AIVM ファイル以外のファイルが指定されている可能性があります。');
         }
         const header_text = new TextDecoder('utf-8').decode(header_bytes);
@@ -134,6 +136,7 @@ export default class AivmUtils {
         try {
             aivm_manifest = AivmManifestSchema.parse(JSON.parse(metadata['aivm_manifest']));
         } catch (error) {
+            console.error(error);
             throw new Error('AIVM マニフェストの形式が正しくありません。');
         }
 
@@ -147,6 +150,7 @@ export default class AivmUtils {
                     throw new Error(`モデルアーキテクチャ ${aivm_manifest.model_architecture} のハイパーパラメータには対応していません。`);
                 }
             } catch (error) {
+                console.error(error);
                 throw new Error('ハイパーパラメータの形式が正しくありません。');
             }
         } else {
@@ -185,6 +189,10 @@ export default class AivmUtils {
 
             // モデル名を反映
             aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name;
+
+            // 環境依存のパスが含まれるため、training_files と validation_files は固定値に変更
+            aivm_metadata.hyper_parameters.data.training_files = 'train.list';
+            aivm_metadata.hyper_parameters.data.validation_files = 'val.list';
 
             // 話者名を反映
             const new_spk2id: { [key: string]: number } = {};

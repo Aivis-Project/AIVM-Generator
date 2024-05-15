@@ -31,12 +31,111 @@ export default class Utils {
 
 
     /**
+     * 画像ファイルを正方形にクロップする
+     * @param file File 画像ファイル
+     * @returns Promise<File> クロップされた画像ファイルを返す Promise
+     */
+    static async cropImageToSquare(file: File): Promise<File> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    if (!ctx) {
+                        reject(new Error('Canvas context could not be obtained.'));
+                        return;
+                    }
+
+                    const size = Math.min(img.width, img.height);
+                    const offsetX = (img.width - size) / 2;
+                    const offsetY = (img.height - size) / 2;
+
+                    canvas.width = size;
+                    canvas.height = size;
+
+                    ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(new File([blob], file.name, { type: file.type }));
+                        } else {
+                            reject(new Error('Blob could not be created.'));
+                        }
+                    }, file.type);
+                };
+                img.onerror = () => reject(new Error('Image could not be loaded.'));
+                img.src = reader.result as string;
+            };
+            reader.onerror = () => reject(new Error('File could not be read.'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+
+    /**
+     * File オブジェクトを Data URL に変換する
+     * @param file File オブジェクト
+     * @returns Data URL を返す Promise
+     */
+    static async fileToDataURL(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('ファイルの読み込み中にエラーが発生しました。'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+
+    /**
      * 表示端末がタッチデバイスかどうか (モバイルデバイスかどうかは問わない)
      * おそらく Windows タブレットや Chromebook なども含まれる
      * @returns タッチデバイスなら true を返す
      */
     static isTouchDevice(): boolean {
         return window.matchMedia('(hover: none)').matches;
+    }
+
+
+    /**
+     * ファイル選択ダイアログを開き、選択されたファイルを File オブジェクトとして取得する
+     * @param accept ファイルの MIME タイプを指定する文字列 (例: 'image/*' など)
+     * @returns 選択されたファイルを返す (ファイルが選択されなかった場合は null を返す)
+     */
+    static async selectFile(accept: string = ''): Promise<File | null> {
+        return new Promise((resolve, reject) => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = accept;
+
+            // ファイルが選択されたときのイベントリスナー
+            input.onchange = (event: Event) => {
+                const target = event.target as HTMLInputElement;
+                if (target.files && target.files.length > 0) {
+                    resolve(target.files[0]);  // 最初のファイルを返す
+                } else {
+                    resolve(null);  // ファイルが選択されなかった場合
+                }
+            };
+
+            // ファイルの選択がキャンセルされたときのイベントリスナー
+            // つい最近になって <input type="file"> に oncancel イベントが追加されたらしい
+            // ref: https://stackoverflow.com/a/76926836/17124142
+            input.oncancel = () => {
+                resolve(null);
+            };
+
+            // エラーハンドリング
+            input.onerror = () => {
+                reject(new Error('ファイル選択ダイアログの表示中にエラーが発生しました。'));
+            };
+
+            // ダイアログを開く
+            input.click();
+        });
     }
 
 

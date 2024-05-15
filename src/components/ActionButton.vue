@@ -61,7 +61,7 @@ const props = defineProps({
     flex-shrink: 0;
     padding: 10px 16px;
     gap: 10px;
-    background: rgb(var(--v-theme-background-lighten-1));
+    background: rgb(var(--v-theme-background));
     border-radius: 4px;
     transition: all 0.28s cubic-bezier(.4,0,.2,1);
     overflow: hidden;
@@ -69,10 +69,10 @@ const props = defineProps({
     user-select: none;
 
     &:hover {
-        background: rgb(var(--v-theme-background-lighten-1), 0.75);
+        background: rgb(var(--v-theme-background-darken-1));
         // タッチデバイスで hover を無効にする
         @media (hover: none) {
-            background: rgb(var(--v-theme-background-lighten-1));
+            background: rgb(var(--v-theme-background));
         }
     }
 
