@@ -88,12 +88,12 @@ const vuetify = createVuetify({
                     // AIVM Generator 独自定義のカラーパレット
                     // 上記までと異なり、すべてのバリアントが網羅されているわけではない (実際に使う色のみ定義されている)
                     'background': '#2a2e33',
-                    'background-darken-1': '#363a3f',
-                    'background-lighten-1': '#202327',
+                    'background-darken-1': '#202327',
+                    'background-lighten-1': '#363a3f',
+                    'background-lighten-2': '#3b3e43',
                     'text': '#fbeeea',
                     'text-darken-1': '#d2d3d4',
                     'text-darken-2': '#97999b',
-                    'border': '#3b3e43',
                 },
                 // CSS 変数の定義
                 variables: {

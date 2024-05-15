@@ -1,4 +1,5 @@
 
+import { Base64 } from 'js-base64';
 import * as uuid from 'uuid';
 
 import { AivmMetadata, AivmManifest, AivmManifestSchema, DefaultAivmManifest } from '@/schemas/AivmManifest';
@@ -44,7 +45,8 @@ export default class AivmUtils {
             try {
                 hyper_parameters = StyleBertVITS2HyperParametersSchema.parse(JSON.parse(hyper_parameters_content));
             } catch (error) {
-                throw new Error(`${model_architecture} のハイパーパラメータファイルの形式が正しくありません。\n${error}`);
+                console.error(error);
+                throw new Error(`${model_architecture} のハイパーパラメータファイルの形式が正しくありません。`);
             }
 
             // スタイルベクトルファイルを読み込む（存在する場合）
@@ -55,10 +57,11 @@ export default class AivmUtils {
             }
 
             // デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
-            // モデルアーキテクチャは Style-Bert-VITS2 系であれば異なる値が指定されても動作するように、ハイパーパラメータの値を使用する
             const manifest = structuredClone(DefaultAivmManifest);
             manifest.name = hyper_parameters.model_name;
+            // モデルアーキテクチャは Style-Bert-VITS2 系であれば異なる値が指定されても動作するように、ハイパーパラメータの値を使用する
             manifest.model_architecture = hyper_parameters.data.use_jp_extra ? 'Style-Bert-VITS2 (JP-Extra)' : 'Style-Bert-VITS2';
+            // モデル UUID はランダムに生成
             manifest.uuid = uuid.v4();
 
             // spk2id の内容を反映
@@ -68,7 +71,9 @@ export default class AivmUtils {
                     name: speaker_name,
                     // JP-Extra の場合は日本語のみ、それ以外は日本語・英語・中国語をサポート
                     supported_languages: hyper_parameters.data.use_jp_extra ? ['ja'] : ['ja', 'en', 'zh'],
+                    // 話者 UUID はランダムに生成
                     uuid: uuid.v4(),
+                    // ローカル ID は spk2id の ID の部分を使用
                     local_id: speaker_index,
                     version: '1.0.0',
                     // style2id の内容を反映
@@ -115,7 +120,7 @@ export default class AivmUtils {
         } catch (error) {
             throw new Error('AIVM ファイルの形式が正しくありません。AIVM ファイル以外のファイルが指定されている可能性があります。');
         }
-        const header_text = new TextDecoder().decode(header_bytes);
+        const header_text = new TextDecoder('utf-8').decode(header_bytes);
         const header_json = JSON.parse(header_text);
 
         // "__metadata__" キーから AIVM メタデータを取得
@@ -152,13 +157,8 @@ export default class AivmUtils {
         let aivm_style_vectors: Uint8Array | undefined;
         if (metadata['aivm_style_vectors']) {
             try {
-                const base64_string = metadata['aivm_style_vectors'];
-                const binary_string = atob(base64_string);
-                const len = binary_string.length;
-                aivm_style_vectors = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                    aivm_style_vectors[i] = binary_string.charCodeAt(i);
-                }
+                const base64_string: string = metadata['aivm_style_vectors'];
+                aivm_style_vectors = Base64.toUint8Array(base64_string);
             } catch (error) {
                 throw new Error('スタイルベクトルのデコードに失敗しました。');
             }
@@ -169,5 +169,68 @@ export default class AivmUtils {
             aivm_hyper_parameters,
             aivm_style_vectors,
         };
+    }
+
+
+    /**
+     * AIVM メタデータを AIVM ファイルに書き込む
+     * @param aivm_file AIVM ファイル
+     * @param aivm_metadata AIVM メタデータ
+     * @returns 書き込みが完了した AIVM or (メタデータが書き込まれていない素の Safetensors) ファイル
+     */
+    static async writeAivmMetadata(aivm_file: File, aivm_metadata: AivmMetadata): Promise<File> {
+
+        // AIVM メタデータをシリアライズ
+        // Safetensors のメタデータ領域はネストなしの string から string への map でなければならないため、
+        // すべてのメタデータを文字列にシリアライズして格納する
+        const metadata: { [key: string]: string } = {};
+        metadata['aivm_manifest'] = JSON.stringify(aivm_metadata.aivm_manifest);
+        metadata['aivm_hyper_parameters'] = JSON.stringify(aivm_metadata.aivm_hyper_parameters);
+        if (aivm_metadata.aivm_style_vectors) {
+            // スタイルベクトルが存在する場合は Base64 エンコードして追加
+            metadata['aivm_style_vectors'] = Base64.fromUint8Array(aivm_metadata.aivm_style_vectors);
+        }
+
+        // AIVM ファイルの内容を一度に読み取る
+        const aivm_file_buffer = await aivm_file.arrayBuffer();
+        const aivm_file_bytes = new Uint8Array(aivm_file_buffer);
+
+        // 既存のヘッダー JSON を取得
+        const existing_header_size = new DataView(aivm_file_buffer).getBigUint64(0, true);
+        const existing_header_bytes = aivm_file_bytes.slice(8, 8 + Number(existing_header_size));
+        const existing_header_text = new TextDecoder('utf-8').decode(existing_header_bytes);
+        const existing_header = JSON.parse(existing_header_text);
+
+        // 既存の __metadata__ を取得または新規作成
+        const existing_metadata = existing_header['__metadata__'] || {};
+
+        // 既存の __metadata__ に新しいメタデータを追加
+        // 既に存在するキーは上書きされる
+        for (const key in metadata) {
+            existing_metadata[key] = metadata[key];
+        }
+
+        // 更新された __metadata__ を設定
+        existing_header['__metadata__'] = existing_metadata;
+
+        // ヘッダー JSON を UTF-8 にエンコード
+        const new_header_text = JSON.stringify(existing_header);
+        const new_header_bytes = new TextEncoder().encode(new_header_text);
+
+        // ヘッダーサイズを 8 バイトの符号なし Little-Endian 64bit 整数に変換
+        const new_header_size = BigInt(new_header_bytes.length);
+        const new_header_size_bytes = new Uint8Array(8);
+        new DataView(new_header_size_bytes.buffer).setBigUint64(0, new_header_size, true);
+
+        // 新しい AIVM ファイルの内容を作成
+        const aivm_file_content = new Uint8Array(8 + new_header_bytes.length + (aivm_file_bytes.length - 8 - Number(existing_header_size)));
+        aivm_file_content.set(new_header_size_bytes, 0);
+        aivm_file_content.set(new_header_bytes, 8);
+        aivm_file_content.set(aivm_file_bytes.slice(8 + Number(existing_header_size)), 8 + new_header_bytes.length);
+
+        // 新しい AIVM ファイルを作成
+        const new_aivm_file = new File([aivm_file_content], aivm_file.name, { type: aivm_file.type });
+
+        return new_aivm_file;
     }
 }

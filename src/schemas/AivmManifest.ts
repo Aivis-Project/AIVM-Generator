@@ -43,7 +43,7 @@ export const AivmManifestSchema = z.object({
         supported_languages: z.array(z.string().length(2)),
         // 話者を一意に識別する UUID
         uuid: z.string().uuid(),
-        // 話者のローカル ID (この音声合成モデル内で一意な 0 から始まる連番で、uuid とは異なる)
+        // 話者のローカル ID (この音声合成モデル内で話者を識別するための一意なローカル ID で、uuid とは異なる)
         local_id: z.number().int().nonnegative(),
         // 話者のバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
         version: z.string().regex(Utils.SEMVER_REGEX),
@@ -52,7 +52,7 @@ export const AivmManifestSchema = z.object({
             // スタイルの名前
             name: z.string().min(1),
             // スタイルのアイコン画像 (Data URL)
-            // 最初のスタイルのアイコン画像が話者のアイコン画像になる
+            // 最初のスタイルのアイコン画像が話者単体のアイコン画像として使用される
             icon: z.string(),
             // スタイルのボイスサンプル (省略時は空配列になる)
             voice_samples: z.array(z.object({
@@ -61,7 +61,7 @@ export const AivmManifestSchema = z.object({
                 // ボイスサンプルのテキスト
                 text: z.string().min(1),
             })),
-            // スタイルの ID (この話者内で一意な 0 から始まる連番で、0 ~ 31 の範囲)
+            // スタイルの ID (この話者内でスタイルを識別するための一意なローカル ID で、uuid とは異なる)
             local_id: z.number().int().min(0).max(31),
         })),
     })),

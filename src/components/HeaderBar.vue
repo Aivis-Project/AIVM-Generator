@@ -23,7 +23,7 @@ const props = defineProps({
     width: calc(100% - 40px);
     height: 100%;
     margin: 0px 20px;
-    border-bottom: 1px solid rgb(var(--v-theme-border));
+    border-bottom: 1px solid rgb(var(--v-theme-background-lighten-2));
 
     &__logo {
         padding: 8px;

@@ -69,7 +69,7 @@ const props = defineProps({
     user-select: none;
 
     &:hover {
-        background: rgb(var(--v-theme-background-lighten-2));
+        background: rgb(var(--v-theme-background-lighten-1), 0.75);
         // タッチデバイスで hover を無効にする
         @media (hover: none) {
             background: rgb(var(--v-theme-background-lighten-1));
@@ -79,7 +79,7 @@ const props = defineProps({
     &--secondary {
         background: rgb(var(--v-theme-secondary));
         &:hover {
-            background: rgb(var(--v-theme-secondary-lighten-1));
+            background: rgb(var(--v-theme-secondary), 0.75);
             // タッチデバイスで hover を無効にする
             @media (hover: none) {
                 background: rgb(var(--v-theme-secondary));

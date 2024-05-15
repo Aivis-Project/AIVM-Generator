@@ -10,6 +10,27 @@ export default class Utils {
 
 
     /**
+     * Blob に格納されているデータをブラウザにダウンロードさせる
+     * @param blob Blob オブジェクト
+     * @param filename 保存するファイル名
+     */
+    static downloadBlobData(blob: Blob, filename: string): void {
+
+        // Blob URL を発行
+        const blob_url = URL.createObjectURL(blob);
+
+        // 画像をダウンロード
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = blob_url;
+        link.click();
+
+        // Blob URL を破棄
+        URL.revokeObjectURL(blob_url);
+    }
+
+
+    /**
      * async/await でスリープ的なもの
      * @param seconds 待機する秒数 (ミリ秒単位ではないので注意)
      * @returns Promise を返すので、await sleep(1); のように使う

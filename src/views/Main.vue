@@ -81,8 +81,8 @@
          </v-window>
         <Heading1 class="mt-6">3. AIVM ファイルを生成</Heading1>
         <div class="mt-5 d-flex justify-center">
-            <ActionButton secondary icon="fluent:save-20-filled"
-                height="45px" font_size="16px" :disabled="!isAllFilesSelected">
+            <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="16px"
+                :disabled="!isAllFilesSelected" @click="downloadAivmFile">
                 上記メタデータで AIVM ファイル (.aivm) を生成
             </ActionButton>
         </div>
@@ -167,5 +167,31 @@ const aivmManifest = computed(() => {
 
 // 2. メタデータ編集 で選択されている話者のタブインデックス
 const speakerTabIndex = ref(0);
+
+// 3. AIVM ファイルを生成 での処理
+function downloadAivmFile() {
+    if (aivmMetadata.value === null) {
+        Message.error('AIVM メタデータが読み込まれていません。');
+        return;
+    }
+
+    // 「各ファイルから新規生成」の場合は Safetensors ファイルを、
+    // 「既存の .aivm ファイルを選択」の場合は AIVM ファイルを書き込み元として使用
+    const safetensorsFile = selectionTypeTabIndex.value === 0
+        ? selectedModel.value as File
+        : selectedAivm.value as File;
+
+    // Safetensors or AIVM ファイルに AIVM メタデータを埋め込んでダウンロード
+    AivmUtils.writeAivmMetadata(
+        safetensorsFile,
+        aivmMetadata.value,
+    ).then((blob) => {
+        // モデル名をファイル名としてダウンロード
+        Utils.downloadBlobData(blob, `${aivmManifest.value.name}.aivm`);
+    }).catch((error) => {
+        Message.error(error.message);
+        console.error(error);
+    });
+}
 
 </script>
