@@ -7,7 +7,7 @@
         <Description class="mt-2">
             すべての処理はブラウザ上で行われます。入力情報がサーバーにアップロードされることはありません。<br>
         </Description>
-        <Heading2 class="mt-5">1. ファイル選択</Heading2>
+        <Heading2 class="mt-6">1. ファイル選択</Heading2>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
             style="margin-top: -42px !important;" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
