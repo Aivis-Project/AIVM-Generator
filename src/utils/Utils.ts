@@ -31,6 +31,16 @@ export default class Utils {
 
 
     /**
+     * 表示端末がタッチデバイスかどうか (モバイルデバイスかどうかは問わない)
+     * おそらく Windows タブレットや Chromebook なども含まれる
+     * @returns タッチデバイスなら true を返す
+     */
+    static isTouchDevice(): boolean {
+        return window.matchMedia('(hover: none)').matches;
+    }
+
+
+    /**
      * async/await でスリープ的なもの
      * @param seconds 待機する秒数 (ミリ秒単位ではないので注意)
      * @returns Promise を返すので、await sleep(1); のように使う

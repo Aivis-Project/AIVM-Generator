@@ -114,6 +114,25 @@ main {
     padding-bottom: 36px;
 }
 
+// ツールチップのスタイル
+.v-popper--theme-tooltip {
+    .v-popper__inner {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        background: rgb(var(--v-theme-background-lighten-1));
+        color: rgb(var(--v-theme-text));
+        font-size: 11px;
+        font-family: 'LINE Seed JP', 'Twemoji', sans-serif;
+        font-weight: 500;
+        opacity: 0.9;
+        line-height: 22px;
+    }
+    .v-popper__arrow-container {
+        display: none;
+    }
+}
+
 // ***** Vuetify 3 のスタイルの上書き *****
 
 // font-weight を 400 から 500 に変更

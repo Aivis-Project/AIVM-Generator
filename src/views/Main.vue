@@ -63,7 +63,8 @@
             <v-window-item class="aivm-speaker mt-3" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
                 <div class="mt-2 d-flex" style="gap: 20px;">
                     <img class="aivm-speaker-style__icon ml-5" :src="speaker.styles[0].icon"
-                        :style="{ opacity: isAllFilesSelected ? 1 : 0.5 }" />
+                        :style="{ opacity: isAllFilesSelected ? 1 : 0.5, pointerEvents: isAllFilesSelected ? 'auto' : 'none' }"
+                        v-tooltip="'最初のスタイルのアイコンが話者のアイコンとして使用されます。'" />
                     <div class="w-100">
                         <v-text-field variant="solo-filled" density="compact" hide-details
                             label="話者の名前" :disabled="!isAllFilesSelected" v-model="speaker.name" />
@@ -83,12 +84,15 @@
                 <div>
                     <div class="aivm-speaker-style" v-for="style in speaker.styles" :key="style.local_id"
                         :class="{ disabled: !isAllFilesSelected }">
-                        <img class="aivm-speaker-style__icon" :src="style.icon" />
+                        <div>
+                            <img class="aivm-speaker-style__icon" :src="style.icon"
+                                v-tooltip="'クリックするとスタイルごとにアイコンを変更できます。'" />
+                        </div>
                         <div>
                             <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
                                 label="スタイルの名前" :disabled="!isAllFilesSelected" v-model="style.name" />
-                            <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details
-                                label="話者のローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="style.local_id" />
+                            <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
+                                label="スタイルのローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="style.local_id" />
                         </div>
                     </div>
                 </div>
@@ -223,7 +227,7 @@ function downloadAivmFile() {
 
 .aivm-speaker-style {
     display: grid;
-    grid-template-columns: 120px 200px 1fr;
+    grid-template-columns: 120px 210px 1fr;
     gap: 20px;
     background: rgb(var(--v-theme-background-lighten-1));
     margin-top: 12px;
@@ -240,10 +244,10 @@ function downloadAivmFile() {
     }
 
     &__icon {
+        display: block;
         flex-shrink: 0;
         width: 120px;
         height: 120px;
-        margin-bottom: 12px;
         background: rgb(var(--v-theme-background));
         aspect-ratio: 1 / 1;
         object-fit: contain;

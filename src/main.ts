@@ -1,10 +1,11 @@
 
 import { Icon } from '@iconify/vue';
+import FloatingVue from 'floating-vue';
+import 'floating-vue/dist/style.css';
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 
 import App from '@/App.vue';
-import Message from '@/message';
 import vuetify from '@/plugins/vuetify';
 import router from '@/router';
 import Utils from '@/utils';
@@ -27,6 +28,14 @@ app.use(router);
 
 // Vuetify を使う
 app.use(vuetify);
+
+// FloatingVue を使う
+// タッチデバイスでは無効化する
+// ref: https://v-tooltip.netlify.app/guide/config#default-values
+FloatingVue.options.themes.tooltip.triggers = Utils.isTouchDevice() ? [] : ['hover', 'focus', 'touch'];
+FloatingVue.options.themes.tooltip.delay.show = 0;
+FloatingVue.options.offset = [0, 7];
+app.use(FloatingVue);
 
 // マウントを実行
 app.mount('#app');
