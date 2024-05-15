@@ -35,142 +35,144 @@
             </v-window-item>
          </v-window>
         <Heading2 class="mt-0">2. メタデータ編集</Heading2>
-        <div class="mt-4 d-flex" style="gap: 20px;">
-            <div class="w-100">
-                <v-text-field variant="solo-filled" density="compact" hide-details
-                    label="音声合成モデルの名前 (話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name" />
-                <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
-                    label="音声合成モデルの説明 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
-                <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
-                    label="音声合成モデルの利用規約 (Markdown 形式 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.terms_of_use" />
-            </div>
-            <div style="width: 360px; flex-shrink: 0;">
-                <v-text-field variant="solo-filled" density="compact" hide-details readonly
-                    label="AIVM マニフェストバージョン (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.manifest_version" />
-                <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
-                    label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
-                <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
-                    label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
-                <v-text-field variant="solo-filled" class="mt-3" density="compact"
-                    :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
-                    label="音声合成モデルのバージョン" :disabled="!isAllFilesSelected" v-model="aivmManifest.version" />
-            </div>
-        </div>
-        <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
-            :disabled="!isAllFilesSelected" v-model="speakerTabIndex">
-            <v-tab style="text-transform: none !important;" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
-                話者{{ `${speaker.local_id + 1} (${speaker.name})` }}
-            </v-tab>
-        </v-tabs>
-         <v-window v-model="speakerTabIndex">
-            <v-window-item class="aivm-speaker mt-3" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
-                <div class="mt-2 d-flex" style="gap: 20px;">
-                    <img class="aivm-speaker-style__icon aivm-speaker-style__icon--speaker ml-5" :src="speaker.styles[0].icon"
-                        :style="{ opacity: isAllFilesSelected ? 1 : 0.5, pointerEvents: isAllFilesSelected ? 'auto' : 'none' }"
-                        v-tooltip="'このノーマルスタイルのアイコンがこの話者全体のアイコンとして使われます。'" />
-                    <div class="w-100">
-                        <v-text-field variant="solo-filled" density="compact" hide-details
-                            label="話者の名前 (話者が1人の場合は音声合成モデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name" />
-                        <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
-                            label="話者の対応言語 (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.supported_languages" />
-                    </div>
-                    <div style="width: 360px; flex-shrink: 0;">
-                        <v-text-field variant="solo-filled" density="compact" hide-details readonly
-                            label="話者の UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.uuid" />
-                        <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
-                            label="話者のローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.local_id" />
-                        <v-text-field variant="solo-filled" class="mt-3" density="compact"
-                            :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
-                            label="話者のバージョン" :disabled="!isAllFilesSelected" v-model="speaker.version" />
-                    </div>
+        <v-form ref="form" @submit.prevent>
+            <div class="mt-4 d-flex" style="gap: 20px;">
+                <div class="w-100">
+                    <v-text-field variant="solo-filled" density="compact" hide-details
+                        label="音声合成モデルの名前 (話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name" />
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
+                        label="音声合成モデルの説明 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
+                        label="音声合成モデルの利用規約 (Markdown 形式 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.terms_of_use" />
                 </div>
-                <div>
-                    <div class="aivm-speaker-style" v-for="(style, index) in speaker.styles" :key="style.local_id"
-                        :class="{ 'aivm-speaker-style--disabled': !isAllFilesSelected }">
-                        <div class="aivm-speaker-style__icon" style="position: relative;">
-                            <img :src="style.icon"
-                                v-tooltip="'クリックするとスタイルごとにアイコンを変更できます。'
-                                    + (index === 0 ? 'このノーマルスタイルのアイコンはこの話者全体のアイコンとしても使われます。' : '')"
-                                @click="Utils.selectFile('image/*').then(async (file) => {
-                                    if (file) {
-                                        // 正方形にクロップ
-                                        const croppedFile = await Utils.cropImageToSquare(file);
-                                        // Data URL に変換
-                                        const dataUrl = await Utils.fileToDataURL(croppedFile);
-                                        // ノーマルスタイルのみ全スタイルのアイコンに反映
-                                        if (index === 0) {
-                                            speaker.styles.forEach(s => s.icon = dataUrl);
-                                        }
-                                        // このスタイルのアイコンを選択されたアイコンにする
-                                        style.icon = dataUrl;
-                                    // キャンセルされた場合はデフォルトアイコンに戻す
-                                    } else {
-                                        style.icon = DEFAULT_ICON_DATA_URL;
-                                        // ノーマルスタイルのみ全スタイルのアイコンに反映
-                                        if (index === 0) {
-                                            speaker.styles.forEach(s => s.icon = DEFAULT_ICON_DATA_URL);
-                                        }
-                                    }
-                                })" />
-                            <Icon class="aivm-speaker-style__icon-edit" icon="fluent:edit-16-filled" height="30px" />
+                <div style="width: 360px; flex-shrink: 0;">
+                    <v-text-field variant="solo-filled" density="compact" hide-details readonly
+                        label="AIVM マニフェストバージョン (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.manifest_version" />
+                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
+                        label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
+                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
+                        label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
+                    <v-text-field variant="solo-filled" class="mt-3" density="compact"
+                        :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
+                        label="音声合成モデルのバージョン" :disabled="!isAllFilesSelected" v-model="aivmManifest.version" />
+                </div>
+            </div>
+            <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
+                :disabled="!isAllFilesSelected" v-model="speakerTabIndex">
+                <v-tab style="text-transform: none !important;" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
+                    話者{{ `${speaker.local_id + 1} (${speaker.name})` }}
+                </v-tab>
+            </v-tabs>
+            <v-window v-model="speakerTabIndex">
+                <v-window-item class="aivm-speaker mt-3" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
+                    <div class="mt-2 d-flex" style="gap: 20px;">
+                        <img class="aivm-speaker-style__icon aivm-speaker-style__icon--speaker ml-5" :src="speaker.styles[0].icon"
+                            :style="{ opacity: isAllFilesSelected ? 1 : 0.5, pointerEvents: isAllFilesSelected ? 'auto' : 'none' }"
+                            v-tooltip="'このノーマルスタイルのアイコンがこの話者全体のアイコンとして使われます。'" />
+                        <div class="w-100">
+                            <v-text-field variant="solo-filled" density="compact" hide-details
+                                label="話者の名前 (話者が1人の場合は音声合成モデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name" />
+                            <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
+                                label="話者の対応言語 (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.supported_languages" />
                         </div>
-                        <div class="d-flex align-center" style="height: 120px;">
-                            <div class="w-100">
-                                <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
-                                    label="スタイルの名前" :disabled="!isAllFilesSelected" v-model="style.name" />
-                                <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
-                                    label="スタイルのローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="style.local_id" />
-                            </div>
+                        <div style="width: 360px; flex-shrink: 0;">
+                            <v-text-field variant="solo-filled" density="compact" hide-details readonly
+                                label="話者の UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.uuid" />
+                            <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
+                                label="話者のローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.local_id" />
+                            <v-text-field variant="solo-filled" class="mt-3" density="compact"
+                                :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
+                                label="話者のバージョン" :disabled="!isAllFilesSelected" v-model="speaker.version" />
                         </div>
-                        <div>
-                            <div class="d-flex align-center">
-                                <Heading3>
-                                    <div>
-                                        ボイスサンプル
-                                        <Description style="margin-top: 2px; font-size: 11px; line-height: 1.5;">
-                                            3つほどボイスサンプルを追加しておくことを推奨します。
-                                            <span v-if="index === 0">このノーマルスタイルのボイスサンプルはこの話者全体のボイスサンプルとしても使われます。</span>
-                                        </Description>
-                                    </div>
-                                    <template #action-button>
-                                        <ActionButton secondary icon="fluent:add-16-filled" font_size="13px"
-                                            @click="style.voice_samples.length < 10 && style.voice_samples.push({
-                                                audio: DEFAULT_VOICE_SAMPLE_DATA_URL,
-                                                transcript: '',
-                                            })">
-                                            追加
-                                        </ActionButton>
-                                    </template>
-                                </Heading3>
+                    </div>
+                    <div>
+                        <div class="aivm-speaker-style" v-for="(style, index) in speaker.styles" :key="style.local_id"
+                            :class="{ 'aivm-speaker-style--disabled': !isAllFilesSelected }">
+                            <div class="aivm-speaker-style__icon" style="position: relative;">
+                                <img :src="style.icon"
+                                    v-tooltip="'クリックするとスタイルごとにアイコンを変更できます。'
+                                        + (index === 0 ? 'このノーマルスタイルのアイコンはこの話者全体のアイコンとしても使われます。' : '')"
+                                    @click="Utils.selectFile('image/*').then(async (file) => {
+                                        if (file) {
+                                            // 正方形にクロップ
+                                            const croppedFile = await Utils.cropImageToSquare(file);
+                                            // Data URL に変換
+                                            const dataUrl = await Utils.fileToDataURL(croppedFile);
+                                            // ノーマルスタイルのみ全スタイルのアイコンに反映
+                                            if (index === 0) {
+                                                speaker.styles.forEach(s => s.icon = dataUrl);
+                                            }
+                                            // このスタイルのアイコンを選択されたアイコンにする
+                                            style.icon = dataUrl;
+                                        // キャンセルされた場合はデフォルトアイコンに戻す
+                                        } else {
+                                            style.icon = DEFAULT_ICON_DATA_URL;
+                                            // ノーマルスタイルのみ全スタイルのアイコンに反映
+                                            if (index === 0) {
+                                                speaker.styles.forEach(s => s.icon = DEFAULT_ICON_DATA_URL);
+                                            }
+                                        }
+                                    })" />
+                                <Icon class="aivm-speaker-style__icon-edit" icon="fluent:edit-16-filled" height="30px" />
                             </div>
-                            <div class="mt-3 aivm-voice-sample" v-for="voiceSample in style.voice_samples" :key="voiceSample.audio">
-                                <div class="d-flex flex-column w-100" style="gap: 8px;">
-                                    <div class="d-flex align-center">
-                                        <audio class="w-100" style="height: 36px;" controls :src="voiceSample.audio"></audio>
-                                        <ActionButton icon="fluent:headphones-sound-wave-20-filled" class="ml-3" font_size="13px"
-                                            @click="Utils.selectFile('audio/*').then(async (file) => {
-                                                if (file) voiceSample.audio = await Utils.fileToDataURL(file);
-                                            })">
-                                            ファイル選択
-                                        </ActionButton>
-                                    </div>
-                                    <v-text-field variant="solo-filled" density="compact" hide-details
-                                        label="ボイスサンプルの書き起こし文 (必須)" v-model="voiceSample.transcript"
-                                        :rules="[v => !!v || '書き起こし文は必須です。']" />
+                            <div class="d-flex align-center" style="height: 120px;">
+                                <div class="w-100">
+                                    <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
+                                        label="スタイルの名前" :disabled="!isAllFilesSelected" v-model="style.name" />
+                                    <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
+                                        label="スタイルのローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="style.local_id" />
                                 </div>
-                                <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13px"
-                                    @click="style.voice_samples.splice(style.voice_samples.indexOf(voiceSample), 1)">
-                                    削除
-                                </ActionButton>
+                            </div>
+                            <div>
+                                <div class="d-flex align-center">
+                                    <Heading3>
+                                        <div>
+                                            ボイスサンプル
+                                            <Description style="margin-top: 2px; font-size: 11px; line-height: 1.5;">
+                                                3つほどボイスサンプルを追加しておくことを推奨します。
+                                                <span v-if="index === 0">このノーマルスタイルのボイスサンプルはこの話者全体のボイスサンプルとしても使われます。</span>
+                                            </Description>
+                                        </div>
+                                        <template #action-button>
+                                            <ActionButton secondary icon="fluent:add-16-filled" font_size="13px"
+                                                @click="style.voice_samples.length < 10 && style.voice_samples.push({
+                                                    audio: DEFAULT_VOICE_SAMPLE_DATA_URL,
+                                                    transcript: '',
+                                                })">
+                                                追加
+                                            </ActionButton>
+                                        </template>
+                                    </Heading3>
+                                </div>
+                                <div class="mt-3 aivm-voice-sample" v-for="voiceSample in style.voice_samples" :key="voiceSample.audio">
+                                    <div class="d-flex flex-column w-100" style="gap: 8px;">
+                                        <div class="d-flex align-center">
+                                            <audio class="w-100" style="height: 36px;" controls :src="voiceSample.audio"></audio>
+                                            <ActionButton icon="fluent:headphones-sound-wave-20-filled" class="ml-3" font_size="13px"
+                                                @click="Utils.selectFile('audio/*').then(async (file) => {
+                                                    if (file) voiceSample.audio = await Utils.fileToDataURL(file);
+                                                })">
+                                                ファイル選択
+                                            </ActionButton>
+                                        </div>
+                                        <v-text-field variant="solo-filled" density="compact" hide-details
+                                            label="ボイスサンプルの書き起こし文 (必須)" v-model="voiceSample.transcript"
+                                            :rules="[v => !!v || '書き起こし文は必須です。']" />
+                                    </div>
+                                    <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13px"
+                                        @click="style.voice_samples.splice(style.voice_samples.indexOf(voiceSample), 1)">
+                                        削除
+                                    </ActionButton>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </v-window-item>
-         </v-window>
-        <v-textarea variant="solo-filled" class="mt-5" density="compact" rows="8" hide-details readonly
-            label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
-            :model-value="JSON.stringify(aivmMetadata?.hyper_parameters, null, 4)" />
+                </v-window-item>
+            </v-window>
+            <v-textarea variant="solo-filled" class="mt-5" density="compact" rows="8" hide-details readonly
+                label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
+                :model-value="JSON.stringify(aivmMetadata?.hyper_parameters, null, 4)" />
+        </v-form>
         <Heading2 class="mt-5">3. AIVM ファイルを生成</Heading2>
         <div class="mt-4 d-flex justify-center">
             <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="14px"
@@ -182,7 +184,9 @@
 </template>
 <script lang="ts" setup>
 
+
 import { computed, ref, watch } from 'vue';
+import { VForm } from 'vuetify/components';
 
 import ActionButton from '@/components/ActionButton.vue';
 import Description from '@/components/Description.vue';
@@ -252,6 +256,9 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
     }
 });
 
+// 2. メタデータ編集 でのフォーム
+const form = ref<VForm | null>(null);
+
 // 2. メタデータ編集 での AIVM メタデータの状態
 const aivmMetadata = ref<AivmMetadata | null>(null);
 const aivmManifest = computed(() => {
@@ -275,9 +282,15 @@ watch(() => aivmManifest.value.speakers[0].name, (name) => {
 });
 
 // 3. AIVM ファイルを生成 での処理
-function downloadAivmFile() {
+async function downloadAivmFile() {
     if (aivmMetadata.value === null) {
         Message.error('AIVM メタデータが読み込まれていません。');
+        return;
+    }
+
+    // バリデーションを実行
+    if ((await form.value!.validate()).valid === false) {
+        Message.error('入力内容にエラーがあります。');
         return;
     }
 
