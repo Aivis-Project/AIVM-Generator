@@ -3,6 +3,10 @@
         <router-link v-ripple class="header__logo" :to="disable_link ? '' : '/'">
             <img src="/assets/images/logo.svg" alt="logo" />
         </router-link>
+        <a class="header__github-link" href="https://github.com/Aivis-Project/AIVM-Generator" target="_blank">
+            <Icon class="mr-1" icon="mdi:github" height="20px" />
+            GitHub
+        </a>
     </header>
 </template>
 <script lang="ts" setup>
@@ -33,6 +37,16 @@ const props = defineProps({
         img {
             display: block;
             height: 50px;
+        }
+    }
+
+    &__github-link {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+        transition: color 0.2s;
+        &:hover {
+            color: rgb(var(--v-theme-primary));
         }
     }
 }
