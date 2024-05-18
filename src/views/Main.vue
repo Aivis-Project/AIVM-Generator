@@ -68,7 +68,7 @@
                     <div class="mt-2 d-flex" style="gap: 20px;">
                         <img class="aivm-speaker-style__icon aivm-speaker-style__icon--speaker ml-5" :src="speaker.styles[0].icon"
                             :style="{ opacity: isAllFilesSelected ? 1 : 0.5, pointerEvents: isAllFilesSelected ? 'auto' : 'none' }"
-                            v-tooltip="'このノーマルスタイルのアイコンがこの話者全体のアイコンとして使われます。'" />
+                            v-tooltip="'ノーマルスタイルのアイコンがこの話者全体のアイコンとして使われます。'" />
                         <div class="w-100">
                             <v-text-field variant="solo-filled" density="compact" hide-details
                                 label="話者の名前 (話者が1人の場合は音声合成モデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name" />
