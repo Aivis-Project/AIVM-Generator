@@ -73,8 +73,8 @@ export const DefaultAivmManifest: AivmManifest = {
     manifest_version: '1.0',
     name: 'Model Name',
     description: '',
-    model_architecture: 'Style-Bert-VITS2 (JP-Extra)',
     terms_of_use: '',
+    model_architecture: 'Style-Bert-VITS2 (JP-Extra)',
     uuid: '00000000-0000-0000-0000-000000000000',
     version: '1.0.0',
     speakers: [{
