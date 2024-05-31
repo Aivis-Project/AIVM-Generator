@@ -50,12 +50,13 @@ export default class AivmUtils {
                 throw new Error(`${model_architecture} のハイパーパラメータファイルの形式が正しくありません。`);
             }
 
-            // スタイルベクトルファイルを読み込む（存在する場合）
-            let style_vectors: Uint8Array | undefined;
-            if (style_vectors_file) {
-                const style_vectors_array_buffer = await style_vectors_file.arrayBuffer();
-                style_vectors = new Uint8Array(style_vectors_array_buffer);
+            // スタイルベクトルファイルを読み込む
+            // Style-Bert-VITS2 モデルアーキテクチャの AIVM ファイルではスタイルベクトルが必須
+            if (style_vectors_file === null) {
+                throw new Error('スタイルベクトルファイルが指定されていません。');
             }
+            const style_vectors_array_buffer = await style_vectors_file.arrayBuffer();
+            const style_vectors = new Uint8Array(style_vectors_array_buffer);
 
             // デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
             const manifest = structuredClone(DefaultAivmManifest);
@@ -186,6 +187,11 @@ export default class AivmUtils {
 
         // Style-Bert-VITS2 系の音声合成モデルでは、AIVM マニフェストの内容をハイパーパラメータにも反映する
         if (aivm_metadata.manifest.model_architecture.startsWith('Style-Bert-VITS2')) {
+
+            // スタイルベクトルが設定されていなければエラー
+            if (aivm_metadata.style_vectors === undefined) {
+                throw new Error('スタイルベクトルが設定されていません。');
+            }
 
             // モデル名を反映
             aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name;
