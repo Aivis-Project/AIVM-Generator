@@ -1,6 +1,8 @@
 
 # AIVM Generator
 
+💠 **AIVM Generator**: **Ai**vis **V**oice **M**odel File (.aivm) Utility **Generator** / Editor
+
 ## Project setup
 
 ```
@@ -25,6 +27,6 @@ yarn build
 yarn lint
 ```
 
-### Customize configuration
+## License
 
-See [Configuration Reference](https://vitejs.dev/config/).
+[MIT License](License.txt)
