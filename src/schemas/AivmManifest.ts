@@ -48,7 +48,7 @@ export const AivmManifestSchema = z.object({
         local_id: z.number().int().nonnegative(),
         // 話者のバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
         version: z.string().regex(Utils.SEMVER_REGEX),
-        // 話者のスタイル情報 (最低 1 つ以上のスタイルが必要)
+        // 話者のスタイル情報 (最低 1 つ以上の話者スタイルが必要)
         styles: z.array(z.object({
             // スタイルの名前
             name: z.string().min(1),
