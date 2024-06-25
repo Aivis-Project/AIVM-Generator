@@ -92,29 +92,20 @@
                             :class="{ 'aivm-speaker-style--disabled': !isAllFilesSelected }">
                             <div class="aivm-speaker-style__icon" style="position: relative;">
                                 <img :src="style.icon"
-                                    v-tooltip="'クリックするとスタイルごとにアイコンを変更できます。'
+                                    v-tooltip="'クリックまたはドラッグ&ドロップでスタイルごとにアイコンを変更できます。'
                                         + (index === 0 ? 'このノーマルスタイルのアイコンはこの話者全体のアイコンとしても使われます。' : '')"
-                                    @click="Utils.selectFile('image/*').then(async (file) => {
-                                        if (file) {
-                                            // 正方形にクロップ
-                                            const croppedFile = await Utils.cropImageToSquare(file);
-                                            // Data URL に変換
-                                            const dataUrl = await Utils.fileToDataURL(croppedFile);
-                                            // ノーマルスタイルのみ全スタイルのアイコンに反映
-                                            if (index === 0) {
-                                                speaker.styles.forEach(s => s.icon = dataUrl);
-                                            }
-                                            // このスタイルのアイコンを選択されたアイコンにする
-                                            style.icon = dataUrl;
-                                        // キャンセルされた場合はデフォルトアイコンに戻す
-                                        } else {
-                                            style.icon = DEFAULT_ICON_DATA_URL;
-                                            // ノーマルスタイルのみ全スタイルのアイコンに反映
-                                            if (index === 0) {
-                                                speaker.styles.forEach(s => s.icon = DEFAULT_ICON_DATA_URL);
-                                            }
-                                        }
-                                    })" />
+                                    @click="Utils.selectFile('image/*').then((file) => handleStyleIconClick(file, index, speaker, style))"
+                                    @dragover.prevent="event => {
+                                        if (event.target) (event.target as HTMLElement).style.border = '4px dashed rgb(var(--v-theme-secondary))'
+                                    }"
+                                    @dragleave="event => {
+                                        if (event.target) (event.target as HTMLElement).style.border = '';
+                                    }"
+                                    @drop.prevent="(event) => {
+                                        if (event.target) (event.target as HTMLElement).style.border = '';
+                                        const file = event.dataTransfer?.files[0];
+                                        if (file) handleStyleIconClick(file, index, speaker, style);
+                                    }" />
                                 <Icon class="aivm-speaker-style__icon-edit" icon="fluent:edit-16-filled" height="30px" />
                             </div>
                             <div class="d-flex align-center" style="height: 120px;">
@@ -196,7 +187,7 @@ import Description from '@/components/Description.vue';
 import Heading2 from '@/components/Heading2.vue';
 import Heading3 from '@/components/Heading3.vue';
 import Message from '@/message';
-import { AivmMetadata, DefaultAivmManifest } from '@/schemas/AivmManifest';
+import { AivmManifest, AivmMetadata, DefaultAivmManifest } from '@/schemas/AivmManifest';
 import { DEFAULT_ICON_DATA_URL, DEFAULT_VOICE_SAMPLE_DATA_URL } from '@/schemas/AivmManifestConstants';
 import Utils from '@/utils';
 import AivmUtils from '@/utils/AivmUtils';
@@ -284,6 +275,44 @@ watch(() => aivmManifest.value.speakers[0].name, (name) => {
     }
 });
 
+// 2. メタデータ編集でスタイルごとのアイコンがクリックされた時の処理
+async function handleStyleIconClick(
+    file: File | null,
+    index: number,
+    speaker: AivmManifest['speakers'][number],
+    style: AivmManifest['speakers'][number]['styles'][number],
+) {
+    if (file) {
+        // 渡された File の MIME タイプが画像であることを確認
+        if (!file.type.startsWith('image/')) {
+            Message.error('指定するアイコンは画像ファイルである必要があります。');
+            return;
+        }
+        // SVG ファイルには未対応
+        if (file.type === 'image/svg+xml') {
+            Message.error('SVG ファイルには対応していません。');
+            return;
+        }
+        // 正方形にクロップ
+        const croppedFile = await Utils.cropImageToSquare(file);
+        // Data URL に変換
+        const dataUrl = await Utils.fileToDataURL(croppedFile);
+        // ノーマルスタイルのみ全スタイルのアイコンに反映
+        if (index === 0) {
+            speaker.styles.forEach(s => s.icon = dataUrl);
+        }
+        // このスタイルのアイコンを選択されたアイコンにする
+        style.icon = dataUrl;
+    // キャンセルされた場合はデフォルトアイコンに戻す
+    } else {
+        style.icon = DEFAULT_ICON_DATA_URL;
+        // ノーマルスタイルのみ全スタイルのアイコンに反映
+        if (index === 0) {
+            speaker.styles.forEach(s => s.icon = DEFAULT_ICON_DATA_URL);
+        }
+    }
+}
+
 // 3. AIVM ファイルを生成 での処理
 async function downloadAivmFile() {
     if (aivmMetadata.value === null) {
@@ -369,6 +398,7 @@ async function downloadAivmFile() {
             width: 100%;
             height: 100%;
             object-fit: contain;
+            border-radius: 32px;
         }
 
         &-edit {
