@@ -39,7 +39,8 @@
             <div class="mt-4 d-flex" style="gap: 20px;">
                 <div class="w-100">
                     <v-text-field variant="solo-filled" density="compact" hide-details
-                        label="音声合成モデルの名前 (話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name" />
+                        label="音声合成モデルの名前 (話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
+                        :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
                         label="音声合成モデルの説明 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
@@ -71,7 +72,8 @@
                             v-tooltip="'ノーマルスタイルのアイコンがこの話者全体のアイコンとして使われます。'" />
                         <div class="w-100">
                             <v-text-field variant="solo-filled" density="compact" hide-details
-                                label="話者の名前 (話者が1人の場合は音声合成モデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name" />
+                                label="話者の名前 (話者が1人の場合は音声合成モデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name"
+                                :rules="[v => !!v || '話者の名前は必須です。']" />
                             <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                                 label="話者の対応言語 (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.supported_languages" />
                         </div>
@@ -118,7 +120,8 @@
                             <div class="d-flex align-center" style="height: 120px;">
                                 <div class="w-100">
                                     <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
-                                        label="スタイルの名前" :disabled="!isAllFilesSelected" v-model="style.name" />
+                                        label="スタイルの名前" :disabled="!isAllFilesSelected" v-model="style.name"
+                                        :rules="[v => !!v || 'スタイルの名前は必須です。']" />
                                     <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
                                         label="スタイルのローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="style.local_id" />
                                 </div>
