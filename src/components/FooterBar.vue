@@ -4,10 +4,8 @@
             <img src="/assets/images/aivis-project.svg" alt="logo" />
         </a>
         <div class="d-flex text-text-darken-1 align-center ml-7 font-weight-bold" style="gap: 20px;">
-            <!-- <a href="https://hub.aivis-project.com/" target="_blank">AivisHub</a> -->
-            <a href="https://speech.aivis-project.com/" target="_blank">AivisSpeech</a>
-            <a href="https://builder.aivis-project.com/" target="_blank">AivisBuilder</a>
-            <a href="https://aivm-generator.aivis-project.com/" target="_blank">AIVM Generator</a>
+            <a href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a>
+            <a href="https://aivis-project.com/builder/" target="_blank">AivisBuilder</a>
         </div>
         <a class="ml-auto" href="https://jpchain.co.jp/" target="_blank">運営会社</a>
     </footer>

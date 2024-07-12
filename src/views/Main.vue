@@ -1,8 +1,8 @@
 <template>
     <main>
         <Description class="mt-4">
-            <a class="link" href="https://github.com/Aivis-Project/AIVM-Specification" target="_blank">AIVM (Aivis Voice Model)</a> は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
-            <a class="link" href="https://speech.aivis-project.com" target="_blank">AivisSpeech</a> をはじめとした対応ソフトウェアに AIVM ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。<br>
+            <a class="link" href="https://github.com/Aivis-Project/aivmlib" target="_blank">AIVM (Aivis Voice Model)</a> は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
+            <a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> をはじめとした対応ソフトウェアに AIVM ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。<br>
         </Description>
         <Description class="mt-2">
             すべての処理はブラウザ上で行われます。入力情報がサーバーにアップロードされることはありません。<br>
