@@ -8,6 +8,9 @@
         "preview": "vite preview",
         "lint": "eslint . --fix --ignore-path .gitignore"
     },
+    "engines": {
+        "node": "20.16.0"
+    },
     "dependencies": {
         "@types/uuid": "^9.0.8",
         "assert": "^2.1.0",
@@ -25,7 +28,7 @@
     "devDependencies": {
         "@babel/types": "^7.24.5",
         "@iconify/vue": "^4.1.2",
-        "@types/node": "^18.19.33",
+        "@types/node": "20.16.0",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
         "@typescript-eslint/parser": "^6.21.0",
         "@vitejs/plugin-vue": "^5.0.4",
