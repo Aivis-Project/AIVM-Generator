@@ -16,9 +16,12 @@ import Snackbars from '@/components/Snackbars.vue';
 // ***** ブラウザのデフォルトスタイルの上書き *****
 
 // スクロールバーのスタイル
-* {
-    scrollbar-color: rgb(var(--v-theme-gray)) rgb(var(--v-theme-background));
-    scrollbar-width: thin;
+// なるべく ::webkit-scrollbar を優先させるため、::webkit-scrollbar 未対応の Firefox でのみ scrollbar-color/width を有効化する
+@supports (-moz-appearance: none) {
+    * {
+        scrollbar-color: rgb(var(--v-theme-background-lighten-3)) rgb(var(--v-theme-background));
+        scrollbar-width: thin;
+    }
 }
 ::-webkit-scrollbar {
     width: 7px;
@@ -30,7 +33,7 @@ import Snackbars from '@/components/Snackbars.vue';
 ::-webkit-scrollbar-thumb {
     background: rgb(var(--v-theme-background-lighten-2));
     &:hover {
-        background: rgb(var(--v-theme-gray));
+        background: rgb(var(--v-theme-background-lighten-3));
     }
 }
 

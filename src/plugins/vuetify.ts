@@ -91,6 +91,7 @@ const vuetify = createVuetify({
                     'background-darken-1': '#202327',
                     'background-lighten-1': '#363a3f',
                     'background-lighten-2': '#3b3e43',
+                    'background-lighten-3': '#484b51',
                     'text': '#fbeeea',
                     'text-darken-1': '#d2d3d4',
                     'text-darken-2': '#97999b',
