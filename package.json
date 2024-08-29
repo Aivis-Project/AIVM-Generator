@@ -6,7 +6,8 @@
         "dev": "vite",
         "build": "vue-tsc --noEmit && vite build",
         "preview": "vite preview",
-        "lint": "eslint . --fix --ignore-path .gitignore"
+        "lint": "eslint . --fix --ignore-path .gitignore",
+        "release": "git switch release && git merge master && git push origin release && git switch master"
     },
     "engines": {
         "node": "20.16.0"
