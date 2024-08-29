@@ -21,7 +21,7 @@
         "uuid": "^10.0.0",
         "vue": "^3.4.38",
         "vue-router": "^4.4.3",
-        "vuetify": "~3.5.18",
+        "vuetify": "^3.7.1",
         "zod": "^3.23.8"
     },
     "devDependencies": {
