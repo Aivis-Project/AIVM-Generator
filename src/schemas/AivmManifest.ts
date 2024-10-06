@@ -50,7 +50,7 @@ export const AivmManifestSchema = z.object({
         // 話者の名前
         name: z.string().min(1),
         // 話者のアイコン画像 (Data URL)
-        // 画像ファイル形式は JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
+        // 画像ファイル形式は 512×512 の JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
         icon: z.string().regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/),
         // 話者の対応言語のリスト (ja, en, zh のような ISO 639-1 言語コード)
         supported_languages: z.array(z.string().length(2)),
@@ -64,7 +64,7 @@ export const AivmManifestSchema = z.object({
             name: z.string().min(1),
             // スタイルのアイコン画像 (Data URL, 省略可能)
             // 省略時は話者のアイコン画像がスタイルのアイコン画像として使われる想定
-            // 画像ファイル形式は JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
+            // 画像ファイル形式は 512×512 の JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
             icon: z.string().regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/).nullable(),
             // スタイルの ID (この話者内でスタイルを識別するための一意なローカル ID で、uuid とは異なる)
             local_id: z.number().int().min(0).max(31),

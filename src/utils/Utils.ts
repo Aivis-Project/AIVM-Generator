@@ -60,13 +60,14 @@ export default class Utils {
                     // 画像を正方形にクロップし、512×512にリサイズ
                     ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, 512, 512);
 
+                    // JPEG に変換して Blob 化
                     canvas.toBlob((blob) => {
                         if (blob) {
                             resolve(new File([blob], file.name, { type: file.type }));
                         } else {
                             reject(new Error('Blob could not be created.'));
                         }
-                    }, file.type);
+                    }, 'image/jpeg', 0.98);
                 };
                 img.onerror = () => reject(new Error('Image could not be loaded.'));
                 img.src = reader.result as string;
