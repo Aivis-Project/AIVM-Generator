@@ -82,7 +82,8 @@ export default class AivmUtils {
                     // style2id の内容を反映
                     styles: Object.keys(hyper_parameters.data.style2id).map((style_name, style_index) => {
                         return {
-                            name: style_name,
+                            // "Neutral" はより分かりやすい "ノーマル" に変換する
+                            name: style_name === 'Neutral' ? 'ノーマル' : style_name,
                             icon: null,
                             local_id: style_index,
                             voice_samples: [],
