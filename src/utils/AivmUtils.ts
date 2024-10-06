@@ -71,20 +71,21 @@ export default class AivmUtils {
                 return {
                     // ハイパーパラメータに記載の話者名を使用
                     name: speaker_name,
+                    // デフォルトアイコンを使用
+                    icon: DEFAULT_ICON_DATA_URL,
                     // JP-Extra の場合は日本語のみ、それ以外は日本語・英語・中国語をサポート
                     supported_languages: hyper_parameters.data.use_jp_extra ? ['ja'] : ['ja', 'en', 'zh'],
                     // 話者 UUID はランダムに生成
                     uuid: uuid.v4(),
                     // ローカル ID は spk2id の ID の部分を使用
                     local_id: speaker_index,
-                    version: '1.0.0',
                     // style2id の内容を反映
                     styles: Object.keys(hyper_parameters.data.style2id).map((style_name, style_index) => {
                         return {
                             name: style_name,
-                            icon: DEFAULT_ICON_DATA_URL,
-                            voice_samples: [],
+                            icon: null,
                             local_id: style_index,
+                            voice_samples: [],
                         };
                     }),
                 };

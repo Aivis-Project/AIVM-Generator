@@ -31,9 +31,9 @@ export default class Utils {
 
 
     /**
-     * 画像ファイルを正方形にクロップする
+     * 画像ファイルを正方形にクロップし、512×512にリサイズする
      * @param file File 画像ファイル
-     * @returns Promise<File> クロップされた画像ファイルを返す Promise
+     * @returns Promise<File> クロップ・リサイズされた画像ファイルを返す Promise
      */
     static async cropImageToSquare(file: File): Promise<File> {
         return new Promise((resolve, reject) => {
@@ -53,10 +53,12 @@ export default class Utils {
                     const offsetX = (img.width - size) / 2;
                     const offsetY = (img.height - size) / 2;
 
-                    canvas.width = size;
-                    canvas.height = size;
+                    // キャンバスサイズを512×512に設定
+                    canvas.width = 512;
+                    canvas.height = 512;
 
-                    ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+                    // 画像を正方形にクロップし、512×512にリサイズ
+                    ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, 512, 512);
 
                     canvas.toBlob((blob) => {
                         if (blob) {
