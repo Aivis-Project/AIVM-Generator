@@ -67,7 +67,7 @@
             <v-window v-model="speakerTabIndex">
                 <v-window-item class="aivm-speaker mt-3" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
                     <div class="mt-2 d-flex" style="gap: 20px;">
-                        <img class="aivm-speaker-style__icon aivm-speaker-style__icon--speaker ml-5" :src="speaker.styles[0].icon"
+                        <img class="aivm-speaker-style__icon aivm-speaker-style__icon--speaker ml-5" :src="speaker.styles[0].icon ?? ''"
                             :style="{ opacity: isAllFilesSelected ? 1 : 0.5, pointerEvents: isAllFilesSelected ? 'auto' : 'none' }"
                             v-ftooltip="'ノーマルスタイルのアイコンがこの話者全体のアイコンとして使われます。'" />
                         <div class="w-100">
@@ -82,16 +82,13 @@
                                 label="話者の UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.uuid" />
                             <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                                 label="話者のローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.local_id" />
-                            <v-text-field variant="solo-filled" class="mt-3" density="compact"
-                                :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
-                                label="話者のバージョン" :disabled="!isAllFilesSelected" v-model="speaker.version" />
                         </div>
                     </div>
                     <div>
                         <div class="aivm-speaker-style" v-for="(style, index) in speaker.styles" :key="style.local_id"
                             :class="{ 'aivm-speaker-style--disabled': !isAllFilesSelected }">
                             <div class="aivm-speaker-style__icon" style="position: relative;">
-                                <img :src="style.icon"
+                                <img :src="style.icon ?? ''"
                                     v-ftooltip="'クリックまたはドラッグ&ドロップでスタイルごとにアイコンを変更できます。'
                                         + (index === 0 ? 'このノーマルスタイルのアイコンはこの話者全体のアイコンとしても使われます。' : '')"
                                     @click="Utils.selectFile('image/*').then((file) => handleStyleIconClick(file, index, speaker, style))"
