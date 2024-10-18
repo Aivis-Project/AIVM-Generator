@@ -41,6 +41,10 @@ export const AivmManifestSchema = z.object({
     terms_of_use: z.string().default(''),
     // 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitectureSchema,
+    // 音声合成モデル学習時のエポック数 (省略時は None になる)
+    training_epochs: z.number().int().nonnegative().nullable(),
+    // 音声合成モデル学習時のステップ数 (省略時は None になる)
+    training_steps: z.number().int().nonnegative().nullable(),
     // 音声合成モデルを一意に識別する UUID
     uuid: z.string().uuid(),
     // 音声合成モデルのバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
@@ -89,6 +93,8 @@ export const DefaultAivmManifest: AivmManifest = {
     description: '',
     terms_of_use: '',
     model_architecture: 'Style-Bert-VITS2 (JP-Extra)',
+    training_epochs: null,
+    training_steps: null,
     uuid: '00000000-0000-0000-0000-000000000000',
     version: '1.0.0',
     speakers: [{

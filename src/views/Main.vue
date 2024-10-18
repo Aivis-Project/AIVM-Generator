@@ -41,9 +41,9 @@
                     <v-text-field variant="solo-filled" density="compact" hide-details
                         label="音声合成モデルの名前 (話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
                         :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
-                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
                         label="音声合成モデルの説明 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
-                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
                         label="音声合成モデルの利用規約 (Markdown 形式 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.terms_of_use" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
@@ -52,6 +52,10 @@
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                         label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
+                        label="音声合成モデルのエポック数" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_epochs" />
+                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details
+                        label="音声合成モデルのステップ数" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_steps" />
+                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details
                         label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact"
                         :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
@@ -243,6 +247,18 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
                 selectedConfig.value as File,
                 selectedStyleVectors.value as File | null,
             ).then((metadata) => {
+                // モデルファイル名からエポック数とステップ数を抽出
+                const modelFileName = (selectedModel.value as File).name;
+                const epochMatch = modelFileName.match(/e(\d{2,})/);  // "e" の後ろに2桁以上の数字
+                const stepMatch = modelFileName.match(/s(\d{2,})/);  // "s" の後ろに2桁以上の数字
+                // エポック数を設定
+                if (epochMatch) {
+                    metadata.manifest.training_epochs = parseInt(epochMatch[1], 10);
+                }
+                // ステップ数を設定
+                if (stepMatch) {
+                    metadata.manifest.training_steps = parseInt(stepMatch[1], 10);
+                }
                 aivmMetadata.value = metadata;
             }).catch((error) => {
                 Message.error(error.message);
