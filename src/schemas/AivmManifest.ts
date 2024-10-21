@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { DEFAULT_ICON_DATA_URL } from '@/schemas/AivmManifestConstants';
 import { StyleBertVITS2HyperParameters } from '@/schemas/StyleBertVITS2';
-import Utils from '@/utils/Utils';
+import Utils from '@/utils';
 
 
 export const ModelArchitectureSchema = z.union([
