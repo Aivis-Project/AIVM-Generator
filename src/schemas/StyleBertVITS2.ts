@@ -8,7 +8,8 @@ export type StyleBertVITS2HyperParameters = z.infer<typeof StyleBertVITS2HyperPa
 /**
  * Style-Bert-VITS2 のハイパーパラメータのスキーマ
  * 学習モデルの作成時期によって詳細なパラメータの有無が異なるため、実装上必須のパラメータ以外は optional としている
- * ref: https://github.com/litagin02/Style-Bert-VITS2/blob/master/style_bert_vits2/models/hyper_parameters.py
+ * 以下は Style-Bert-VITS2 v2.4.1 のハイパーパラメータスキーマ定義を TypeScript 向けに改変したもの
+ * ref: https://github.com/litagin02/Style-Bert-VITS2/blob/2.4.1/style_bert_vits2/models/hyper_parameters.py
  */
 export const StyleBertVITS2HyperParametersSchema = z.object({
     model_name: z.string(),
