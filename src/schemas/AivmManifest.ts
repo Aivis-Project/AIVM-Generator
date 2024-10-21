@@ -11,8 +11,10 @@ export const ModelArchitectureSchema = z.union([
     z.literal('Style-Bert-VITS2 (JP-Extra)'),
 ]);
 
+export const ModelFormatSchema = z.enum(['Safetensors', 'ONNX']);
 
-/* AIVM ファイルに含まれる全てのメタデータのシリアライズ後の型 */
+
+/* AIVM / AIVMX ファイルに含まれる全てのメタデータのシリアライズ後の型 */
 export type AivmMetadata = {
     // AIVM マニフェストの情報
     manifest: AivmManifest,
@@ -36,11 +38,14 @@ export const AivmManifestSchema = z.object({
     // 音声合成モデルの説明 (省略時は空文字列になる)
     description: z.string().default(''),
     // 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列になる)
-    // カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL へのリンクのみを記述する
+    // カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL リンクのみを記述する
     // 例: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
     terms_of_use: z.string().default(''),
     // 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitectureSchema,
+    // 音声合成モデルのモデル形式 (Safetensors または ONNX)
+    // AIVM ファイル (.aivm) のモデル形式は Safetensors 、AIVMX ファイル (.aivmx) のモデル形式は ONNX である
+    model_format: ModelFormatSchema,
     // 音声合成モデル学習時のエポック数 (省略時は None になる)
     training_epochs: z.number().int().nonnegative().nullable(),
     // 音声合成モデル学習時のステップ数 (省略時は None になる)
@@ -93,6 +98,7 @@ export const DefaultAivmManifest: AivmManifest = {
     description: '',
     terms_of_use: '',
     model_architecture: 'Style-Bert-VITS2 (JP-Extra)',
+    model_format: 'Safetensors',
     training_epochs: null,
     training_steps: null,
     uuid: '00000000-0000-0000-0000-000000000000',
