@@ -1,7 +1,7 @@
 
 # AIVM Generator
 
-💠 **AIVM Generator**: **Ai**vis **V**oice **M**odel File (.aivm) Utility **Generator** / Editor
+💠 **AIVM Generator**: **Ai**vis **V**oice **M**odel File (.aivm/.aivmx) Utility **Generator** / Editor
 
 ## Project setup
 
