@@ -87,7 +87,7 @@ html {
 
 // アプリケーションのルート
 .v-application {
-    max-width: 1000px;
+    max-width: 1004px;
     min-height: 100vh;
     min-height: 100dvh;
     margin-left: auto;

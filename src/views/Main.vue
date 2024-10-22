@@ -1,16 +1,16 @@
 <template>
     <main>
-        <Description class="mt-4">
-            <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
+        <Description class="mt-4" style="word-break: keep-all; overflow-wrap: anywhere;">
+            <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ<wbr>（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
             <a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> をはじめとした AIVM 仕様に対応するソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。<br>
         </Description>
         <Description class="mt-3">
             <strong>この AIVM Generator では、ブラウザ上の GUI で AIVM / AIVMX ファイルを生成・編集できます。</strong><br>
             すべての処理はブラウザ上で行われます。入力情報がサーバーにアップロードされることはありません。<br>
         </Description>
-        <Description class="mt-3 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));">
-            <a class="link" href="https://github.com/Aivis-Project/aivmlib" target="_blank">aivmlib</a> / <a class="link" href="https://github.com/Aivis-Project/aivmlib-web" target="_blank">aivmlib-web</a> では、AIVM / AIVMX ファイル内のメタデータを読み書きするための Python / JavaScript (Web) 向け<br>
-            ユーティリティライブラリを提供しています。詳しくは <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-specification" target="_blank">AIVM Specification</a> をご参照ください。<br>
+        <Description class="mt-3 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
+            word-break: keep-all; overflow-wrap: anywhere;">
+            <a class="link" href="https://github.com/Aivis-Project/aivmlib" target="_blank">aivmlib</a> / <a class="link" href="https://github.com/Aivis-Project/aivmlib-web" target="_blank">aivmlib-web</a> では、AIVM / AIVMX ファイル内のメタデータを読み書きするための Python / JavaScript (Web) 向け<wbr>ユーティリティライブラリを提供しています。詳しくは <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-specification" target="_blank">AIVM Specification</a> をご参照ください。<br>
         </Description>
         <Heading2 class="mt-7">1. ファイル選択</Heading2>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
