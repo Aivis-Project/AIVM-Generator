@@ -6,12 +6,15 @@ import { StyleBertVITS2HyperParameters } from '@/schemas/StyleBertVITS2';
 import Utils from '@/utils';
 
 
-export const ModelArchitectureSchema = z.union([
-    z.literal('Style-Bert-VITS2'),
-    z.literal('Style-Bert-VITS2 (JP-Extra)'),
+export const ModelArchitectureSchema = z.enum([
+    'Style-Bert-VITS2',
+    'Style-Bert-VITS2 (JP-Extra)',
 ]);
 
-export const ModelFormatSchema = z.enum(['Safetensors', 'ONNX']);
+export const ModelFormatSchema = z.enum([
+    'Safetensors',
+    'ONNX',
+]);
 
 
 /* AIVM / AIVMX ファイルに含まれる全てのメタデータのシリアライズ後の型 */
@@ -37,6 +40,8 @@ export const AivmManifestSchema = z.object({
     name: z.string().min(1),
     // 音声合成モデルの説明 (省略時は空文字列になる)
     description: z.string().default(''),
+    // 音声合成モデルの作成者名のリスト (省略時は空リストになる)
+    creators: z.array(z.string()).default([]),
     // 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列になる)
     // カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL リンクのみを記述する
     // 例: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
@@ -46,10 +51,10 @@ export const AivmManifestSchema = z.object({
     // 音声合成モデルのモデル形式 (Safetensors または ONNX)
     // AIVM ファイル (.aivm) のモデル形式は Safetensors 、AIVMX ファイル (.aivmx) のモデル形式は ONNX である
     model_format: ModelFormatSchema,
-    // 音声合成モデル学習時のエポック数 (省略時は None になる)
-    training_epochs: z.number().int().nonnegative().nullable(),
-    // 音声合成モデル学習時のステップ数 (省略時は None になる)
-    training_steps: z.number().int().nonnegative().nullable(),
+    // 音声合成モデル学習時のエポック数 (省略時は null になる)
+    training_epochs: z.number().int().nonnegative().nullable().default(null),
+    // 音声合成モデル学習時のステップ数 (省略時は null になる)
+    training_steps: z.number().int().nonnegative().nullable().default(null),
     // 音声合成モデルを一意に識別する UUID
     uuid: z.string().uuid(),
     // 音声合成モデルのバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
@@ -74,9 +79,9 @@ export const AivmManifestSchema = z.object({
             // スタイルのアイコン画像 (Data URL, 省略可能)
             // 省略時は話者のアイコン画像がスタイルのアイコン画像として使われる想定
             // 画像ファイル形式は 512×512 の JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
-            icon: z.string().regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/).nullable(),
+            icon: z.string().regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/).nullable().default(null),
             // スタイルの ID (この話者内でスタイルを識別するための一意なローカル ID で、uuid とは異なる)
-            local_id: z.number().int().min(0).max(31),
+            local_id: z.number().int().min(0).max(31),  // 最大 32 スタイルまでサポート
             // スタイルのボイスサンプル (省略時は空配列になる)
             voice_samples: z.array(z.object({
                 // ボイスサンプルの音声ファイル (Data URL)
@@ -96,6 +101,7 @@ export const DefaultAivmManifest: AivmManifest = {
     manifest_version: '1.0',
     name: 'Model Name',
     description: '',
+    creators: [],
     terms_of_use: '',
     model_architecture: 'Style-Bert-VITS2 (JP-Extra)',
     model_format: 'Safetensors',
