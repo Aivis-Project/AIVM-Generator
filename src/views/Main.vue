@@ -1,13 +1,18 @@
 <template>
     <main>
         <Description class="mt-4">
-            <a class="link" href="https://github.com/Aivis-Project/aivmlib" target="_blank">AIVM (Aivis Voice Model)</a> は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
-            <a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> をはじめとした対応ソフトウェアに AIVM ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。<br>
+            <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
+            <a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> をはじめとした AIVM 仕様に対応するソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。<br>
         </Description>
-        <Description class="mt-2">
+        <Description class="mt-3">
+            <strong>この AIVM Generator では、ブラウザ上の GUI で AIVM / AIVMX ファイルを生成・編集できます。</strong><br>
             すべての処理はブラウザ上で行われます。入力情報がサーバーにアップロードされることはありません。<br>
         </Description>
-        <Heading2 class="mt-6">1. ファイル選択</Heading2>
+        <Description class="mt-3 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));">
+            <a class="link" href="https://github.com/Aivis-Project/aivmlib" target="_blank">aivmlib</a> / <a class="link" href="https://github.com/Aivis-Project/aivmlib-web" target="_blank">aivmlib-web</a> では、AIVM / AIVMX ファイル内のメタデータを読み書きするための Python / JavaScript (Web) 向け<br>
+            ユーティリティライブラリを提供しています。詳しくは <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-specification" target="_blank">AIVM Specification</a> をご参照ください。<br>
+        </Description>
+        <Heading2 class="mt-7">1. ファイル選択</Heading2>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
             style="margin-top: -42px !important;" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
@@ -34,7 +39,7 @@
                     label="AIVM ファイル (.aivm) を選択" accept=".aivm" v-model="selectedAivm" />
             </v-window-item>
          </v-window>
-        <Heading2 class="mt-0">2. メタデータ編集</Heading2>
+        <Heading2 class="mt-1">2. メタデータ編集</Heading2>
         <v-form ref="form" @submit.prevent>
             <div class="mt-4 d-flex" style="gap: 20px;">
                 <div class="w-100">
@@ -43,7 +48,18 @@
                         :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
                         label="音声合成モデルの説明 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
-                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
+                    <v-combobox variant="solo-filled" class="mt-3" density="default" hide-details
+                        label="音声合成モデルの作成者 (複数追加・省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.creators"
+                        multiple chips closable-chips>
+                        <template v-slot:no-data>
+                            <v-list-item>
+                                <v-list-item-title>
+                                    作成者名を入力し、Enter キーを押して追加してください。
+                                </v-list-item-title>
+                            </v-list-item>
+                        </template>
+                    </v-combobox>
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="2" hide-details
                         label="音声合成モデルの利用規約 (Markdown 形式 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.terms_of_use" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
@@ -51,11 +67,11 @@
                         label="AIVM マニフェストバージョン (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.manifest_version" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                         label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
-                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
+                    <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
                         label="音声合成モデルのエポック数" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_epochs" />
-                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details
+                    <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
                         label="音声合成モデルのステップ数" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_steps" />
-                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details
+                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                         label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact"
                         :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
@@ -108,7 +124,7 @@
                             :class="{ 'aivm-speaker-style--disabled': !isAllFilesSelected }">
                             <div class="aivm-speaker-style__icon" style="position: relative;">
                                 <img :src="style.icon ?? speaker.icon"
-                                    v-ftooltip="'クリックまたはドラッグ&ドロップでスタイルごとにアイコンを変更できます。'"
+                                    v-ftooltip="'クリックまたはドラッグ&ドロップでスタイルごとにアイコンを変更できます。未指定時は話者全体のアイコンが使われます。'"
                                     @click="Utils.selectFile('image/*').then((file) => handleIconClick(file, style.icon)
                                         .then((dataUrl) => style.icon = dataUrl))"
                                     @dragover.prevent="event => {
@@ -144,7 +160,7 @@
                                             </Description>
                                         </div>
                                         <template #action-button>
-                                            <ActionButton secondary icon="fluent:add-16-filled" font_size="13px"
+                                            <ActionButton secondary icon="fluent:add-16-filled" font_size="13.5px"
                                                 @click="style.voice_samples.length < 10 && style.voice_samples.push({
                                                     audio: DEFAULT_VOICE_SAMPLE_DATA_URL,
                                                     transcript: '',
@@ -158,7 +174,7 @@
                                     <div class="d-flex flex-column w-100" style="gap: 8px;">
                                         <div class="d-flex align-center">
                                             <audio class="w-100" style="height: 36px;" controls :src="voiceSample.audio"></audio>
-                                            <ActionButton icon="fluent:headphones-sound-wave-20-filled" class="ml-3" font_size="13px"
+                                            <ActionButton icon="fluent:headphones-sound-wave-20-filled" class="ml-3" font_size="13.5px"
                                                 @click="Utils.selectFile('audio/*').then(async (file) => {
                                                     if (file) voiceSample.audio = await Utils.fileToDataURL(file);
                                                 })">
@@ -169,7 +185,7 @@
                                             label="ボイスサンプルの書き起こし文 (必須)" v-model="voiceSample.transcript"
                                             :rules="[v => !!v || '書き起こし文は必須です。']" />
                                     </div>
-                                    <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13px"
+                                    <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13.5px"
                                         @click="style.voice_samples.splice(style.voice_samples.indexOf(voiceSample), 1)">
                                         削除
                                     </ActionButton>
@@ -183,7 +199,7 @@
                 label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
                 :model-value="JSON.stringify(aivmMetadata?.hyper_parameters, null, 4)" />
         </v-form>
-        <Heading2 class="mt-5">3. AIVM ファイルを生成</Heading2>
+        <Heading2 class="mt-6">3. AIVM ファイルを生成</Heading2>
         <div class="mt-4 d-flex justify-center">
             <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="14px"
                 :disabled="!isAllFilesSelected" @click="downloadAivmFile">
@@ -197,6 +213,7 @@
 
 import { computed, ref, watch } from 'vue';
 import { VForm } from 'vuetify/components';
+import { VNumberInput } from 'vuetify/labs/components';
 
 import ActionButton from '@/components/ActionButton.vue';
 import Description from '@/components/Description.vue';

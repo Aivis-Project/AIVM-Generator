@@ -9,7 +9,7 @@
     display: block;
     width: 100%;
     color: rgb(var(--v-theme-text-darken-1));
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 500;
     line-height: 1.65;
 }
