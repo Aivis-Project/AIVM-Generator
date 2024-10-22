@@ -11,7 +11,7 @@ import { StyleBertVITS2HyperParameters, StyleBertVITS2HyperParametersSchema } fr
  * Aivis Voice Model File (.aivm/.aivmx) Utility Library
  *
  * AIVM / AIVMX ファイルフォーマットの仕様は下記ドキュメントを参照のこと
- * ref: https://github.com/Aivis-Project/aivmlib#aivm-specifications
+ * ref: https://github.com/Aivis-Project/aivmlib#aivm-specification
  */
 export default class AivmUtils {
 
