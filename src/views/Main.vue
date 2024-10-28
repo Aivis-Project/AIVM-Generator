@@ -223,7 +223,7 @@ import Message from '@/message';
 import { AivmMetadata, DefaultAivmManifest } from '@/schemas/AivmManifest';
 import { DEFAULT_ICON_DATA_URL, DEFAULT_VOICE_SAMPLE_DATA_URL } from '@/schemas/AivmManifestConstants';
 import Utils from '@/utils';
-import AivmUtils from '@/utils/AivmUtils';
+import Aivmlib from '@/utils/Aivmlib';
 
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
@@ -259,7 +259,7 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
     if (isAllFilesSelected.value) {
         if (selectionTypeTabIndex.value === 0) {
             // 「各ファイルから新規生成」の場合
-            AivmUtils.generateAivmMetadata(
+            Aivmlib.generateAivmMetadata(
                 selectedArchitecture.value,
                 selectedConfig.value as File,
                 selectedStyleVectors.value as File | null,
@@ -283,7 +283,7 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
             });
         } else {
             // 「既存の .aivm ファイルを選択」の場合
-            AivmUtils.readAivmMetadata(
+            Aivmlib.readAivmMetadata(
                 selectedAivm.value as File,
             ).then((metadata) => {
                 aivmMetadata.value = metadata;
@@ -371,7 +371,7 @@ async function downloadAivmFile() {
         : selectedAivm.value as File;
 
     // Safetensors or AIVM ファイルに AIVM メタデータを埋め込んでダウンロード
-    AivmUtils.writeAivmMetadata(
+    Aivmlib.writeAivmMetadata(
         safetensorsFile,
         aivmMetadata.value,
     ).then((blob) => {

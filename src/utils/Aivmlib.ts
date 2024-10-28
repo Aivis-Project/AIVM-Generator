@@ -13,7 +13,7 @@ import { StyleBertVITS2HyperParameters, StyleBertVITS2HyperParametersSchema } fr
  * AIVM / AIVMX ファイルフォーマットの仕様は下記ドキュメントを参照のこと
  * ref: https://github.com/Aivis-Project/aivmlib#aivm-specification
  */
-export default class AivmUtils {
+export default class Aivmlib {
 
 
     /**
@@ -64,8 +64,8 @@ export default class AivmUtils {
                     name: speaker_name,
                     // デフォルトアイコンを使用
                     icon: DEFAULT_ICON_DATA_URL,
-                    // JP-Extra の場合は日本語のみ、それ以外は日本語・英語・中国語をサポート
-                    supported_languages: hyper_parameters.data.use_jp_extra ? ['ja'] : ['ja', 'en', 'zh'],
+                    // JP-Extra の場合は日本語のみ、それ以外は日本語・アメリカ英語・標準中国語をサポート
+                    supported_languages: hyper_parameters.data.use_jp_extra ? ['ja'] : ['ja', 'en-US', 'zh-CN'],
                     // 話者 UUID はランダムに生成
                     uuid: uuid.v4(),
                     // ローカル ID は spk2id の ID の部分を使用
