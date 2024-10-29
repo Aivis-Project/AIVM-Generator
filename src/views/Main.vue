@@ -60,7 +60,7 @@
                         </template>
                     </v-combobox>
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="2" hide-details
-                        label="音声合成モデルの利用規約 (Markdown 形式 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.terms_of_use" />
+                        label="音声合成モデルの利用規約 (Markdown 形式 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
                     <v-text-field variant="solo-filled" density="compact" hide-details readonly

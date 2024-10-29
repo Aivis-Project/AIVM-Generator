@@ -1,0 +1,8 @@
+{
+    // 保存時に ESLint による自動フォーマットを行う
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit",
+    },
+    // TypeScript の SDK をプロジェクトの node_modules から読み込む
+    "typescript.tsdk": "node_modules/typescript/lib",
+}
