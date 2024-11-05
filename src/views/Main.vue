@@ -6,6 +6,7 @@
         </Description>
         <Description class="mt-3">
             <strong>この AIVM Generator では、ブラウザ上の GUI で AIVM / AIVMX ファイルを生成・編集できます。</strong><br>
+            もちろん、既存の AIVM / AIVMX ファイル内の AIVM メタデータの確認・編集にも対応しています。<br>
             すべての処理はブラウザ上で行われます。入力情報がサーバーにアップロードされることはありません。<br>
         </Description>
         <Description class="mt-3 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
@@ -14,7 +15,10 @@
         </Description>
         <Heading2 class="mt-7">1. ファイル選択</Heading2>
         <Description class="mt-3">
-            現時点では、<a class="link" href="https://github.com/litagin02/Style-Bert-VITS2" target="_blank">Style-Bert-VITS2</a> で作成した音声合成モデルにのみ対応しています。
+            現時点では、<a class="link" href="https://github.com/litagin02/Style-Bert-VITS2" target="_blank">Style-Bert-VITS2</a> で作成した音声合成モデルにのみ対応しています。<br>
+            <div class="mt-1 spacer"></div>
+            AIVM / AIVMX ファイルを生成するには、Safetensors (→ AIVM) 形式のモデルファイルだけでなく、ONNX (→ AIVMX) 形式のモデルファイルも必要です。<br>
+            AIVM / AIVMX ファイルのメタデータの整合性を保つため、両方のファイルを同時に生成・編集する仕様となっています。<br>
         </Description>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
