@@ -85,9 +85,13 @@ html {
     }
 }
 
+body {
+    background: linear-gradient(130deg, hsl(206, 69%, 23%) 0%, rgba(42, 46, 51, 1) 100%) !important;
+}
+
 // アプリケーションのルート
 .v-application {
-    max-width: 1004px;
+    max-width: 1010px;
     min-height: 100vh;
     min-height: 100dvh;
     margin-left: auto;
@@ -98,7 +102,7 @@ html {
     overflow-x: clip;  // clip なら position: sticky; が効く
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: rgb(var(--v-theme-background)) !important;
+    background: rgba(var(--v-theme-background), 0.5) !important;
     color: rgb(var(--v-theme-text)) !important;
 
     // Safari は Twemoji COLR をうまく描画できない？ので当面無効にする

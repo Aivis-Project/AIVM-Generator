@@ -1,7 +1,7 @@
 <template>
     <main>
         <Description class="mt-4" style="word-break: keep-all; overflow-wrap: anywhere;">
-            <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ<wbr>（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
+            <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、<b>学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ<wbr>（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。</b><br>
             <a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> をはじめとした AIVM 仕様に対応するソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。<br>
         </Description>
         <Description class="mt-3">
@@ -40,15 +40,17 @@
             </v-window-item>
          </v-window>
         <Heading2 class="mt-1">2. メタデータ編集</Heading2>
+        <Description class="mt-4">
+            ここで設定したメタデータは、AIVM / AIVMX ファイル内に埋め込まれる <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-manifest-specification-version-10" target="_blank">AIVM マニフェスト</a> に反映されます。<br>
+            「省略可」とある項目は、必須ではありませんので、必要に応じて設定してください。
+        </Description>
         <v-form ref="form" @submit.prevent>
             <div class="mt-4 d-flex" style="gap: 20px;">
                 <div class="w-100">
                     <v-text-field variant="solo-filled" density="compact" hide-details
-                        label="音声合成モデルの名前 (話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
+                        label="音声合成モデルの名前 (最大 80 文字 / 話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
                         :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
-                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
-                        label="音声合成モデルの説明 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
-                    <v-combobox variant="solo-filled" class="mt-3" density="default" hide-details
+                    <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details
                         label="音声合成モデルの作成者 (複数追加・省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.creators"
                         multiple chips closable-chips>
                         <template v-slot:no-data>
@@ -59,8 +61,15 @@
                             </v-list-item>
                         </template>
                     </v-combobox>
-                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="2" hide-details
-                        label="音声合成モデルの利用規約 (Markdown 形式 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
+                    <div class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
+                        font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
+                        作成者名には npm package.json の "author", "contributors" に指定できるものと同じ書式を利用できます。<br>
+                        例: "John Doe" / "Jane Doe &lt;jane.doe@example.com&gt;" / "John Doe &lt;john.doe@example.com&gt; (https://example.com)"
+                    </div>
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
+                        label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
+                        label="音声合成モデルのライセンス情報 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
                     <v-text-field variant="solo-filled" density="compact" hide-details readonly
@@ -68,14 +77,18 @@
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                         label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
                     <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
-                        label="音声合成モデルのエポック数" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_epochs" />
+                        label="音声合成モデルのエポック数 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_epochs" />
                     <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
-                        label="音声合成モデルのステップ数" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_steps" />
+                        label="音声合成モデルのステップ数 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_steps" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                         label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact"
                         :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
                         label="音声合成モデルのバージョン" :disabled="!isAllFilesSelected" v-model="aivmManifest.version" />
+                    <div style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
+                        font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
+                        同じ音声合成モデルを更新する際は、バージョンを上げることを推奨します。<a class="link" href="https://semver.org/lang/ja/" target="_blank">SemVer 2.0 形式のバージョン</a> を入力してください。
+                    </div>
                 </div>
             </div>
             <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
@@ -199,18 +212,37 @@
                 label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
                 :model-value="JSON.stringify(aivmMetadata?.hyper_parameters, null, 4)" />
         </v-form>
-        <Heading2 class="mt-6">3. AIVM ファイルを生成</Heading2>
-        <div class="mt-4 d-flex justify-center">
+        <Heading2 class="mt-6">3. AIVM / AIVMX ファイルを生成</Heading2>
+        <Description class="mt-4 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
+            word-break: keep-all; overflow-wrap: anywhere;">
+            <p class="mb-1"><strong>AivisSpeech での音声合成には AIVMX (.aivmx) 形式を、モデルミックスや開発には AIVM (.aivm) 形式をご利用ください。</strong></p>
+            <ul class="ml-3">
+                <li><strong>AIVM (.aivm)</strong>: モデルミックスによる新しい声質の作成やファインチューニングが可能な形式です。
+                    <ul class="ml-5">
+                        <li>おもに NVIDIA GPU での利用に特化しています。(PyTorch + Safetensors モデル)</li>
+                    </ul>
+                </li>
+                <li><strong>AIVMX (.aivmx)</strong>: より多くの環境で音声合成を実行できる形式です。
+                    <ul class="ml-5">
+                        <li><strong>CPU だけでも快適に音声合成を実行できます。</strong>やろうと思えば Web ブラウザでも動かせます。(ONNX モデル)</li>
+                        <li>Windows では AMD / Intel の GPU でも高速に動作します。</li>
+                        <li><strong>AivisSpeech はインストールサイズを削減するため、AIVMX ファイルにのみ対応しています。</strong></li>
+                    </ul>
+                </li>
+            </ul>
+        </Description>
+        <div class="mt-5 d-flex justify-center">
             <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="14px"
                 :disabled="!isAllFilesSelected" @click="downloadAivmFile">
-                上記メタデータで AIVM ファイル (.aivm) を生成
+                上記メタデータで AIVM / AIVMX ファイル (.aivm / .aivmx) を生成
             </ActionButton>
         </div>
     </main>
 </template>
 <script lang="ts" setup>
 
-
+import Aivmlib from 'aivmlib-web';
+import { AivmMetadata, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from 'aivmlib-web';
 import { computed, ref, watch } from 'vue';
 import { VForm } from 'vuetify/components';
 import { VNumberInput } from 'vuetify/labs/components';
@@ -219,11 +251,9 @@ import ActionButton from '@/components/ActionButton.vue';
 import Description from '@/components/Description.vue';
 import Heading2 from '@/components/Heading2.vue';
 import Heading3 from '@/components/Heading3.vue';
+import { DEFAULT_VOICE_SAMPLE_DATA_URL } from '@/constants';
 import Message from '@/message';
-import { AivmMetadata, DefaultAivmManifest } from '@/schemas/AivmManifest';
-import { DEFAULT_ICON_DATA_URL, DEFAULT_VOICE_SAMPLE_DATA_URL } from '@/schemas/AivmManifestConstants';
 import Utils from '@/utils';
-import Aivmlib from '@/utils/Aivmlib';
 
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
