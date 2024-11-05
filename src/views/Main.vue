@@ -329,8 +329,8 @@ watch([selectedArchitecture, selectedModel, selectedOnnxModel, selectedConfig, s
                 Aivmlib.readAivmMetadata(selectedAivm.value as File),
                 Aivmlib.readAivmxMetadata(selectedAivmx.value as File),
             ]).then(([AivmMetadataInAivm, AivmMetadataInAivmx]) => {
-                console.log('AIVM metadata (in AIVM)', AivmMetadataInAivm);
-                console.log('AIVM metadata (in AIVMX)', AivmMetadataInAivmx);
+                console.log('AIVM metadata (in AIVM):', AivmMetadataInAivm);
+                console.log('AIVM metadata (in AIVMX):', AivmMetadataInAivmx);
                 // メタデータの一致を確認（UUID で比較）
                 if (AivmMetadataInAivm.manifest.uuid !== AivmMetadataInAivmx.manifest.uuid) {
                     Message.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
@@ -429,6 +429,7 @@ async function downloadAivmFile() {
         Aivmlib.writeAivmMetadata(safetensorsFile, aivmMetadata.value),
         Aivmlib.writeAivmxMetadata(onnxFile, aivmMetadata.value),
     ]).then(([aivmBlob, aivmxBlob]) => {
+        console.log('Generated AIVM metadata:', aivmMetadata.value);
         // モデル名をファイル名として両方をダウンロード
         Utils.downloadBlobData(aivmBlob, `${aivmManifest.value.name}.aivm`);
         Utils.downloadBlobData(aivmxBlob, `${aivmManifest.value.name}.aivmx`);
