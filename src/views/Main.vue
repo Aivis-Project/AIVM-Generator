@@ -61,7 +61,7 @@
             <div class="mt-5 d-flex" style="gap: 20px;">
                 <div class="w-100">
                     <v-text-field variant="solo-filled" density="compact" hide-details
-                        label="音声合成モデルの名前 (最大 80 文字 / 話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
+                        label="音声合成モデルの名前 (最大 80 文字 / 単独話者モデルでは話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
                         :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
                     <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details
                         label="音声合成モデルの作成者 (複数追加・省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.creators"
@@ -136,10 +136,10 @@
                         </div>
                         <div class="w-100">
                             <v-text-field variant="solo-filled" density="compact" hide-details
-                                label="話者の名前 (話者が1人の場合は音声合成モデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name"
+                                label="話者の名前 (最大 80 文字 / 単独話者モデルではモデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name"
                                 :rules="[v => !!v || '話者の名前は必須です。']" />
-                            <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
-                                label="話者の対応言語 (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.supported_languages" />
+                            <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details readonly multiple chips
+                                label="話者の対応言語 (BCP 47 言語タグ / 読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.supported_languages" />
                         </div>
                         <div style="width: 360px; flex-shrink: 0;">
                             <v-text-field variant="solo-filled" density="compact" hide-details readonly
@@ -172,7 +172,7 @@
                             <div class="d-flex align-center" style="height: 120px;">
                                 <div class="w-100">
                                     <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
-                                        label="スタイルの名前" :disabled="!isAllFilesSelected" v-model="style.name"
+                                        label="スタイルの名前 (最大 20 文字)" :disabled="!isAllFilesSelected" v-model="style.name"
                                         :rules="[v => !!v || 'スタイルの名前は必須です。']" />
                                     <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
                                         label="スタイルのローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="style.local_id" />
@@ -199,6 +199,7 @@
                                         </template>
                                     </Heading3>
                                 </div>
+                                <!-- TODO: M4A 圧縮・ボイスサンプル自動生成 -->
                                 <div class="mt-3 aivm-voice-sample" v-for="voiceSample in style.voice_samples" :key="voiceSample.audio">
                                     <div class="d-flex flex-column w-100" style="gap: 8px;">
                                         <div class="d-flex align-center">
@@ -448,13 +449,20 @@ async function downloadAivmFile() {
     });
 }
 
-const selectedLicense = ref<'ACML' | 'ACML-NC' | 'パブリックドメイン (CC0)' | 'この音声合成モデルの公開・配布を行わない' | 'カスタムライセンス'>('ACML');
+type License = (
+    'ACML (Aivis Common Model License)' |
+    'ACML-NC (Aivis Common Model License - Non Commercial)' |
+    'パブリックドメイン (CC0)' |
+    'この音声合成モデルの公開・配布を行わない' |
+    'カスタムライセンス'
+);
+const selectedLicense = ref<License>('ACML (Aivis Common Model License)');
 watch(selectedLicense, (newValue) => {
     switch (newValue) {
-        case 'ACML':
+        case 'ACML (Aivis Common Model License)':
             aivmManifest.value.license = LICENSE_ACML;
             break;
-        case 'ACML-NC':
+        case 'ACML-NC (Aivis Common Model License - Non Commercial)':
             aivmManifest.value.license = LICENSE_ACML_NC;
             break;
         case 'パブリックドメイン (CC0)':
@@ -480,9 +488,9 @@ watch(aivmMetadata, (newValue) => {
     if (newValue) {
         // ライセンスに応じてselectedLicenseを設定
         if (newValue.manifest.license === LICENSE_ACML) {
-            selectedLicense.value = 'ACML';
+            selectedLicense.value = 'ACML (Aivis Common Model License)';
         } else if (newValue.manifest.license === LICENSE_ACML_NC) {
-            selectedLicense.value = 'ACML-NC';
+            selectedLicense.value = 'ACML-NC (Aivis Common Model License - Non Commercial)';
         } else if (newValue.manifest.license === LICENSE_CC0) {
             selectedLicense.value = 'パブリックドメイン (CC0)';
         } else if (newValue.manifest.license === null) {

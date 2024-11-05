@@ -31,7 +31,7 @@ export default class Utils {
 
 
     /**
-     * 画像ファイルを正方形にクロップし、512×512にリサイズする
+     * 画像ファイルを正方形にクロップし、512×512 の JPEG 画像ファイルに変換する
      * @param file File 画像ファイル
      * @returns Promise<File> クロップ・リサイズされた画像ファイルを返す Promise
      */
@@ -57,13 +57,17 @@ export default class Utils {
                     canvas.width = 512;
                     canvas.height = 512;
 
+                    // 背景を白で塗りつぶし
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, 512, 512);
+
                     // 画像を正方形にクロップし、512×512にリサイズ
                     ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, 512, 512);
 
                     // JPEG に変換して Blob 化 (品質: 98)
                     canvas.toBlob((blob) => {
                         if (blob) {
-                            resolve(new File([blob], file.name, { type: file.type }));
+                            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
                         } else {
                             reject(new Error('Blob could not be created.'));
                         }
