@@ -16,7 +16,7 @@
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
             style="margin-top: -42px !important;" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
-                v-for="selectionType in ['各ファイルから新規生成', '既存の .aivm ファイルを選択']" :key="selectionType">
+                v-for="selectionType in ['各ファイルから新規生成', '既存の .aivm/.aivmx ファイルを選択']" :key="selectionType">
                 {{selectionType}}
             </v-tab>
         </v-tabs>
@@ -24,8 +24,12 @@
             <v-window-item class="pt-4 pb-5">
                 <v-select variant="solo-filled" density="compact" hide-details :items="['Style-Bert-VITS2 (JP-Extra)', 'Style-Bert-VITS2']"
                     label="音声合成モデルのアーキテクチャを選択" v-model="selectedArchitecture" />
-                <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
-                    label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="selectedModel" />
+                <div class="d-flex" style="gap: 12px;">
+                    <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
+                        label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="selectedModel" style="flex: 1;" />
+                    <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
+                        label="ONNX モデル (.onnx) を選択" accept=".onnx" v-model="selectedOnnxModel" style="flex: 1;" />
+                </div>
                 <div v-if="selectedArchitecture.startsWith('Style-Bert-VITS2')">
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="ハイパーパラメータ (config.json) を選択" accept=".json"
@@ -35,8 +39,12 @@
                 </div>
             </v-window-item>
             <v-window-item class="pt-4 pb-5">
-                <v-file-input variant="solo-filled" density="compact" show-size hide-details
-                    label="AIVM ファイル (.aivm) を選択" accept=".aivm" v-model="selectedAivm" />
+                <div class="d-flex" style="gap: 12px;">
+                    <v-file-input variant="solo-filled" density="compact" show-size hide-details
+                        label="AIVM ファイル (.aivm) を選択" accept=".aivm" v-model="selectedAivm" style="flex: 1;" />
+                    <v-file-input variant="solo-filled" density="compact" show-size hide-details
+                        label="AIVMX ファイル (.aivmx) を選択" accept=".aivmx" v-model="selectedAivmx" style="flex: 1;" />
+                </div>
             </v-window-item>
          </v-window>
         <Heading2 class="mt-1">2. メタデータ編集</Heading2>
@@ -262,6 +270,8 @@ const selectedModel = ref<File | File[] | undefined>(undefined);
 const selectedConfig = ref<File | File[] | undefined>(undefined);
 const selectedStyleVectors = ref<File | File[] | undefined>(undefined);
 const selectedAivm = ref<File | File[] | undefined>(undefined);
+const selectedOnnxModel = ref<File | File[] | undefined>(undefined);
+const selectedAivmx = ref<File | File[] | undefined>(undefined);
 
 // 1. ファイル選択 で全てのファイルが選択されているかどうか
 const isAllFilesSelected = computed(() => {
@@ -269,19 +279,20 @@ const isAllFilesSelected = computed(() => {
     if (selectionTypeTabIndex.value === 0) {
         // Style-Bert-VITS2 系モデルは追加で config.json と style_vectors.npy が必要
         if (selectedArchitecture.value.startsWith('Style-Bert-VITS2')) {
-            return selectedModel.value !== undefined && selectedConfig.value !== undefined && selectedStyleVectors.value !== undefined;
+            return selectedModel.value !== undefined && selectedOnnxModel.value !== undefined &&
+                   selectedConfig.value !== undefined && selectedStyleVectors.value !== undefined;
         } else {
-            return selectedModel.value !== undefined;
+            return selectedModel.value !== undefined && selectedOnnxModel.value !== undefined;
         }
-    // 「既存の .aivm ファイルを選択」の場合
+    // 「既存の .aivm/.aivmx ファイルを選択」の場合
     } else {
-        return selectedAivm.value !== undefined;
+        return selectedAivm.value !== undefined && selectedAivmx.value !== undefined;
     }
 });
 
 // 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
 // その際全てのファイルが選択されていれば、 AIVM メタデータの生成 or 再読み込みを実行する
-watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors, selectedAivm], () => {
+watch([selectedArchitecture, selectedModel, selectedOnnxModel, selectedConfig, selectedStyleVectors, selectedAivm, selectedAivmx], () => {
     aivmMetadata.value = null;
     speakerTabIndex.value = 0;
 
@@ -312,11 +323,21 @@ watch([selectedArchitecture, selectedModel, selectedConfig, selectedStyleVectors
                 console.error(error);
             });
         } else {
-            // 「既存の .aivm ファイルを選択」の場合
-            Aivmlib.readAivmMetadata(
-                selectedAivm.value as File,
-            ).then((metadata) => {
-                aivmMetadata.value = metadata;
+            // 「既存の .aivm/.aivmx ファイルを選択」の場合
+            // AIVM と AIVMX の両方からメタデータを読み込み、一致することを確認
+            Promise.all([
+                Aivmlib.readAivmMetadata(selectedAivm.value as File),
+                Aivmlib.readAivmxMetadata(selectedAivmx.value as File),
+            ]).then(([AivmMetadataInAivm, AivmMetadataInAivmx]) => {
+                console.log('AIVM metadata (in AIVM)', AivmMetadataInAivm);
+                console.log('AIVM metadata (in AIVMX)', AivmMetadataInAivmx);
+                // メタデータの一致を確認（UUID で比較）
+                if (AivmMetadataInAivm.manifest.uuid !== AivmMetadataInAivmx.manifest.uuid) {
+                    Message.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
+                    console.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
+                    return;
+                }
+                aivmMetadata.value = AivmMetadataInAivm;
             }).catch((error) => {
                 Message.error(error.message);
                 console.error(error);
@@ -394,19 +415,23 @@ async function downloadAivmFile() {
         return;
     }
 
-    // 「各ファイルから新規生成」の場合は Safetensors ファイルを、
-    // 「既存の .aivm ファイルを選択」の場合は AIVM ファイルを書き込み元として使用
+    // 「各ファイルから新規生成」の場合は Safetensors/ONNX ファイルを、
+    // 「既存の .aivm/.aivmx ファイルを選択」の場合は AIVM/AIVMX ファイルを書き込み元として使用
     const safetensorsFile = selectionTypeTabIndex.value === 0
         ? selectedModel.value as File
         : selectedAivm.value as File;
+    const onnxFile = selectionTypeTabIndex.value === 0
+        ? selectedOnnxModel.value as File
+        : selectedAivmx.value as File;
 
-    // Safetensors or AIVM ファイルに AIVM メタデータを埋め込んでダウンロード
-    Aivmlib.writeAivmMetadata(
-        safetensorsFile,
-        aivmMetadata.value,
-    ).then((blob) => {
-        // モデル名をファイル名としてダウンロード
-        Utils.downloadBlobData(blob, `${aivmManifest.value.name}.aivm`);
+    // AIVM と AIVMX の両方を生成
+    Promise.all([
+        Aivmlib.writeAivmMetadata(safetensorsFile, aivmMetadata.value),
+        Aivmlib.writeAivmxMetadata(onnxFile, aivmMetadata.value),
+    ]).then(([aivmBlob, aivmxBlob]) => {
+        // モデル名をファイル名として両方をダウンロード
+        Utils.downloadBlobData(aivmBlob, `${aivmManifest.value.name}.aivm`);
+        Utils.downloadBlobData(aivmxBlob, `${aivmManifest.value.name}.aivmx`);
     }).catch((error) => {
         Message.error(error.message);
         console.error(error);
