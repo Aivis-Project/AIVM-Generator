@@ -13,8 +13,10 @@
             <a class="link" href="https://github.com/Aivis-Project/aivmlib" target="_blank">aivmlib</a> / <a class="link" href="https://github.com/Aivis-Project/aivmlib-web" target="_blank">aivmlib-web</a> では、AIVM / AIVMX ファイル内のメタデータを読み書きするための Python / JavaScript (Web) 向け<wbr>ユーティリティライブラリを提供しています。詳しくは <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-specification" target="_blank">AIVM Specification</a> をご参照ください。<br>
         </Description>
         <Heading2 class="mt-7">1. ファイル選択</Heading2>
-        <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
-            style="margin-top: -42px !important;" v-model="selectionTypeTabIndex">
+        <Description class="mt-3">
+            現時点では、<a class="link" href="https://github.com/litagin02/Style-Bert-VITS2" target="_blank">Style-Bert-VITS2</a> で作成した音声合成モデルにのみ対応しています。
+        </Description>
+        <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
                 v-for="selectionType in ['各ファイルから新規生成', '既存の .aivm/.aivmx ファイルを選択']" :key="selectionType">
                 {{selectionType}}
@@ -48,12 +50,15 @@
             </v-window-item>
          </v-window>
         <Heading2 class="mt-1">2. メタデータ編集</Heading2>
-        <Description class="mt-4">
+        <Description class="mt-3">
             ここで設定したメタデータは、AIVM / AIVMX ファイル内に埋め込まれる <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-manifest-specification-version-10" target="_blank">AIVM マニフェスト</a> に反映されます。<br>
-            「省略可」とある項目は、必須ではありませんので、必要に応じて設定してください。
+            「省略可」とある項目は、必須ではありませんので、必要に応じて設定してください。<br>
+            <div class="mt-1">
+                音声合成モデル・話者の UUID は自動生成されます。再度 AIVM / AIVMX ファイルのメタデータを編集しても UUID は変更されません。
+            </div>
         </Description>
         <v-form ref="form" @submit.prevent>
-            <div class="mt-4 d-flex" style="gap: 20px;">
+            <div class="mt-5 d-flex" style="gap: 20px;">
                 <div class="w-100">
                     <v-text-field variant="solo-filled" density="compact" hide-details
                         label="音声合成モデルの名前 (最大 80 文字 / 話者が1人の場合は話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
@@ -71,7 +76,7 @@
                     </v-combobox>
                     <div class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
                         font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
-                        作成者名には npm package.json の "author", "contributors" に指定できるものと同じ書式を利用できます。<br>
+                        作成者名には <a class="link" href="https://docs.npmjs.com/cli/v10/configuring-npm/package-json#people-fields-author-contributors" target="_blank">npm package.json の "author", "contributors" に指定できるもの</a> と同じ書式を利用できます。<br>
                         例: "John Doe" / "Jane Doe &lt;jane.doe@example.com&gt;" / "John Doe &lt;john.doe@example.com&gt; (https://example.com)"
                     </div>
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
@@ -221,7 +226,7 @@
                 :model-value="JSON.stringify(aivmMetadata?.hyper_parameters, null, 4)" />
         </v-form>
         <Heading2 class="mt-6">3. AIVM / AIVMX ファイルを生成</Heading2>
-        <Description class="mt-4 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
+        <Description class="mt-5 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
             word-break: keep-all; overflow-wrap: anywhere;">
             <p class="mb-1"><strong>AivisSpeech での音声合成には AIVMX (.aivmx) 形式を、モデルミックスや開発には AIVM (.aivm) 形式をご利用ください。</strong></p>
             <ul class="ml-3">
