@@ -79,10 +79,13 @@
                         作成者名には <a class="link" href="https://docs.npmjs.com/cli/v10/configuring-npm/package-json#people-fields-author-contributors" target="_blank">npm package.json の "author", "contributors" に指定できるもの</a> と同じ書式を利用できます。<br>
                         例: "John Doe" / "Jane Doe &lt;jane.doe@example.com&gt;" / "John Doe &lt;john.doe@example.com&gt; (https://example.com)"
                     </div>
-                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="3" hide-details
-                        label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
-                        label="音声合成モデルのライセンス情報 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
+                        label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
+                    <v-select variant="solo-filled" class="mt-3" density="compact" hide-details
+                        label="音声合成モデルのライセンス" :disabled="!isAllFilesSelected" v-model="selectedLicense"
+                        :items="['ACML', 'ACML-NC', 'パブリックドメイン (CC0)', 'カスタムライセンス', 'この音声合成モデルの公開・配布を行わない']" />
+                    <v-textarea v-if="selectedLicense === 'カスタムライセンス'" variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
+                        label="カスタムライセンスの内容を入力 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
                     <v-text-field variant="solo-filled" density="compact" hide-details readonly
@@ -265,6 +268,7 @@ import Description from '@/components/Description.vue';
 import Heading2 from '@/components/Heading2.vue';
 import Heading3 from '@/components/Heading3.vue';
 import { DEFAULT_VOICE_SAMPLE_DATA_URL } from '@/constants';
+import { LICENSE_ACML, LICENSE_ACML_NC, LICENSE_CC0 } from '@/constants';
 import Message from '@/message';
 import Utils from '@/utils';
 
@@ -443,6 +447,51 @@ async function downloadAivmFile() {
         console.error(error);
     });
 }
+
+const selectedLicense = ref<'ACML' | 'ACML-NC' | 'パブリックドメイン (CC0)' | 'この音声合成モデルの公開・配布を行わない' | 'カスタムライセンス'>('ACML');
+watch(selectedLicense, (newValue) => {
+    switch (newValue) {
+        case 'ACML':
+            aivmManifest.value.license = LICENSE_ACML;
+            break;
+        case 'ACML-NC':
+            aivmManifest.value.license = LICENSE_ACML_NC;
+            break;
+        case 'パブリックドメイン (CC0)':
+            aivmManifest.value.license = LICENSE_CC0;
+            break;
+        case 'この音声合成モデルの公開・配布を行わない':
+            aivmManifest.value.license = null;
+            break;
+        case 'カスタムライセンス':
+            if (aivmManifest.value.license === null ||
+                aivmManifest.value.license === LICENSE_ACML ||
+                aivmManifest.value.license === LICENSE_ACML_NC ||
+                aivmManifest.value.license === LICENSE_CC0) {
+                // 未設定、もしくは定義済みライセンスの場合は空文字列にリセット
+                aivmManifest.value.license = '';
+            }
+            break;
+    }
+});
+
+// aivmMetadataの監視に追加
+watch(aivmMetadata, (newValue) => {
+    if (newValue) {
+        // ライセンスに応じてselectedLicenseを設定
+        if (newValue.manifest.license === LICENSE_ACML) {
+            selectedLicense.value = 'ACML';
+        } else if (newValue.manifest.license === LICENSE_ACML_NC) {
+            selectedLicense.value = 'ACML-NC';
+        } else if (newValue.manifest.license === LICENSE_CC0) {
+            selectedLicense.value = 'パブリックドメイン (CC0)';
+        } else if (newValue.manifest.license === null) {
+            selectedLicense.value = 'この音声合成モデルの公開・配布を行わない';
+        } else {
+            selectedLicense.value = 'カスタムライセンス';
+        }
+    }
+}, { immediate: true });
 
 </script>
 <style lang="scss" scoped>
