@@ -53,7 +53,13 @@
                 </div>
             </v-window-item>
          </v-window>
-        <Heading2 class="mt-1">2. メタデータ編集</Heading2>
+        <div class="d-flex align-center">
+            <Heading2 class="mt-1">2. メタデータ編集</Heading2>
+            <!-- 開発者モードのチェックボックス -->
+            <v-checkbox class="ml-2 mt-1" density="compact" hide-details color="transparent"
+                v-model="developer_mode" style="opacity: 0; cursor: default; user-select: none;"
+                @mouseenter="developer_mode_hover_count++" />
+        </div>
         <Description class="mt-3">
             ここで設定したメタデータは、AIVM / AIVMX ファイル内に埋め込まれる <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-manifest-specification-version-10" target="_blank">AIVM マニフェスト</a> に反映されます。<br>
             「省略可」とある項目は、必須ではありませんので、必要に応じて設定してください。<br>
@@ -92,7 +98,8 @@
                         label="カスタムライセンスの内容を入力 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
-                    <v-text-field variant="solo-filled" density="compact" hide-details readonly
+                    <v-text-field variant="solo-filled" density="compact" hide-details
+                        :readonly="!developer_mode"
                         label="AIVM マニフェストバージョン (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.manifest_version" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                         label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
@@ -100,7 +107,8 @@
                         label="音声合成モデルのエポック数 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_epochs" />
                     <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
                         label="音声合成モデルのステップ数 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_steps" />
-                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
+                    <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details
+                        :readonly="!developer_mode"
                         label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact"
                         :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
@@ -146,7 +154,8 @@
                                 label="話者の対応言語 (BCP 47 言語タグ / 読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.supported_languages" />
                         </div>
                         <div style="width: 360px; flex-shrink: 0;">
-                            <v-text-field variant="solo-filled" density="compact" hide-details readonly
+                            <v-text-field variant="solo-filled" density="compact" hide-details
+                                :readonly="!developer_mode"
                                 label="話者の UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.uuid" />
                             <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                                 label="話者のローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.local_id" />
@@ -505,6 +514,22 @@ watch(aivmMetadata, (newValue) => {
     }
 }, { immediate: true });
 
+// 開発者モードの状態管理
+const developer_mode = ref(false);
+const developer_mode_hover_count = ref(0);
+
+// 開発者モードのホバー回数が10回を超えたら開発者モードを有効化できるようにする
+watch(developer_mode_hover_count, (count) => {
+    if (count >= 10) {
+        // チェックボックスを表示
+        const checkbox = document.querySelector('.v-checkbox') as HTMLElement;
+        if (checkbox) {
+            checkbox.style.opacity = '0.1';
+            checkbox.style.cursor = 'pointer';
+        }
+    }
+});
+
 </script>
 <style lang="scss" scoped>
 
@@ -587,6 +612,14 @@ watch(aivmMetadata, (newValue) => {
     border-radius: 12px;
     background: rgb(var(--v-theme-background-lighten-2));
     box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
+}
+
+// 開発者モードのチェックボックスのスタイル
+.v-checkbox {
+    transition: opacity 0.3s;
+    &:hover {
+        opacity: 0.2 !important;
+    }
 }
 
 </style>
