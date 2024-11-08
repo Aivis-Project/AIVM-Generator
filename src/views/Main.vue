@@ -425,7 +425,7 @@ async function handleIconClick(file: File | null, currentIcon: string | null, fo
     }
 }
 
-// 3. AIVM ファイルを生成 での処理
+// 3. AIVM / AIVMX ファイルを生成 での処理
 async function downloadAivmFile() {
     if (aivmMetadata.value === null) {
         Message.error('AIVM メタデータが読み込まれていません。');
