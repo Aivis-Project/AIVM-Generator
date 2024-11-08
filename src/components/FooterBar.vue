@@ -15,7 +15,7 @@
                     </a>
                 </div>
                 <!-- Contact Button -->
-                <a v-ripple href="https://forms.gle/jccEogK6zXMC9Ksv5" target="_blank" class="footer__button footer__button--dark">
+                <a v-ripple href="https://forms.gle/sTsZGfX7aR8ox8Rs7" target="_blank" class="footer__button footer__button--dark">
                     <Icon icon="majesticons:mail-line" height="24px" />
                     導入のご相談・資料請求
                 </a>
