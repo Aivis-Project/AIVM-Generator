@@ -85,9 +85,9 @@ html {
     }
 }
 
-body {
+/* body {
     background: linear-gradient(130deg, hsl(206, 69%, 23%) 0%, rgba(42, 46, 51, 1) 100%) !important;
-}
+} */
 
 // アプリケーションのルート
 .v-application {
@@ -99,7 +99,7 @@ body {
     font-family: 'LINE Seed JP', 'Twemoji', sans-serif;
     font-size: 14px;
     font-weight: 500;
-    overflow-x: clip;  // clip なら position: sticky; が効く
+    /* overflow-x: clip;  // clip なら position: sticky; が効く */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: rgba(var(--v-theme-background), 0.5) !important;
