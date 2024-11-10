@@ -1,8 +1,10 @@
 <template>
     <main>
         <Description class="mt-4" style="word-break: keep-all; overflow-wrap: anywhere;">
-            <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、<b>学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ<wbr>（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。</b><br>
-            <a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> をはじめとした AIVM 仕様に対応するソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。<br>
+            <strong>このサイトでは、<a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> などで使える AI 音声合成モデルファイル (AIVM / AIVMX) を、簡単に作成・編集できます。</strong>
+        </Description>
+        <Description class="mt-1">
+            <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ<wbr>（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
         </Description>
         <Description class="mt-3">
             <strong>この AIVM Generator では、ブラウザ上の GUI で AIVM / AIVMX ファイルを生成・編集できます。</strong><br>
