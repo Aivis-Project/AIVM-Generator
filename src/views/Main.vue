@@ -62,7 +62,6 @@
         </div>
         <Description class="mt-3">
             ここで設定したメタデータは、AIVM / AIVMX ファイル内に埋め込まれる <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-manifest-specification-version-10" target="_blank">AIVM マニフェスト</a> に反映されます。<br>
-            「省略可」とある項目は、必須ではありませんので、必要に応じて設定してください。<br>
             <div class="mt-1">
                 音声合成モデル・話者の UUID は自動生成されます。再度 AIVM / AIVMX ファイルのメタデータを編集しても UUID は変更されません。
             </div>
