@@ -95,7 +95,7 @@
                         label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
                     <v-select variant="solo-filled" class="mt-3" density="compact" hide-details
                         label="音声合成モデルのライセンス" :disabled="!isAllFilesSelected" v-model="selectedLicense"
-                        :items="['ACML', 'ACML-NC', 'パブリックドメイン (CC0)', 'カスタムライセンス', 'この音声合成モデルの公開・配布を行わない']" />
+                        :items="['ACML (Aivis Common Model License)', 'ACML-NC (Aivis Common Model License - Non Commercial)', 'パブリックドメイン (CC0)', 'カスタムライセンス', 'この音声合成モデルの公開・配布を行わない']" />
                     <v-textarea v-if="selectedLicense === 'カスタムライセンス'" variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
                         label="カスタムライセンスの内容を入力 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
                 </div>
