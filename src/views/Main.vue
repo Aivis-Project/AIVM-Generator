@@ -66,7 +66,7 @@
         <Description class="mt-3">
             ここで設定したメタデータは、AIVM / AIVMX ファイル内に埋め込まれる <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-manifest-specification-version-10" target="_blank">AIVM マニフェスト</a> に反映されます。<br>
             <div class="mt-1">
-                音声合成モデル・話者の UUID は自動生成されます。再度 AIVM / AIVMX ファイルのメタデータを編集しても UUID は変更されません。
+                音声合成モデル・話者の <a class="link" href="https://wa3.i-3-i.info/word13163.html" target="_blank">UUID</a> は自動生成されます。再度 AIVM / AIVMX ファイルのメタデータを編集しても UUID は変更されません。
             </div>
         </Description>
         <v-form ref="form" @submit.prevent>
@@ -287,6 +287,15 @@ import { DEFAULT_VOICE_SAMPLE_DATA_URL } from '@/constants';
 import { LICENSE_ACML, LICENSE_ACML_NC, LICENSE_CC0 } from '@/constants';
 import Message from '@/message';
 import Utils from '@/utils';
+
+// Safari の場合は警告を表示
+if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
+    Message.warning('Safari では動作検証を行なっておらず、正常に動作しない可能性があります。最新版の Chrome をご利用ください。');
+}
+// Firefox の場合は警告を表示
+if (navigator.userAgent.includes('Firefox')) {
+    Message.warning('Firefox では動作検証を行なっておらず、正常に動作しない可能性があります。最新版の Chrome をご利用ください。');
+}
 
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
