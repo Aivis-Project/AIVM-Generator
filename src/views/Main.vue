@@ -96,6 +96,21 @@
                     <v-select variant="solo-filled" class="mt-3" density="compact" hide-details
                         label="音声合成モデルのライセンス" :disabled="!isAllFilesSelected" v-model="selectedLicense"
                         :items="['ACML (Aivis Common Model License)', 'ACML-NC (Aivis Common Model License - Non Commercial)', 'パブリックドメイン (CC0)', 'カスタムライセンス', 'この音声合成モデルの公開・配布を行わない']" />
+                    <div v-if="selectedLicense === 'ACML (Aivis Common Model License)'" class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
+                        font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
+                        <a class="link" href="https://github.com/Aivis-Project/ACML/blob/master/ACML-1.0.md" target="_blank">ACML (Aivis Common Model License) のライセンス文を確認する</a><br>
+                        ACML / ACML-NC は、音声合成モデルの自由な利用を促進しながら、制作者と利用者の双方にとって安心して活用できる環境を実現することを目指して策定されたライセンスです。
+                    </div>
+                    <div v-else-if="selectedLicense === 'ACML-NC (Aivis Common Model License - Non Commercial)'" class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
+                        font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
+                        <a class="link" href="https://github.com/Aivis-Project/ACML/blob/master/ACML-NC-1.0.md" target="_blank">ACML-NC (Aivis Common Model License - Non Commercial) のライセンス文を確認する</a><br>
+                        ACML / ACML-NC は、音声合成モデルの自由な利用を促進しながら、制作者と利用者の双方にとって安心して活用できる環境を実現することを目指して策定されたライセンスです。
+                    </div>
+                    <div v-else-if="selectedLicense === 'パブリックドメイン (CC0)'" class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
+                        font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
+                        <a class="link" href="https://github.com/idleberg/Creative-Commons-Markdown/blob/main/4.0/zero.markdown" target="_blank">CC0 1.0 Universal のライセンス文を確認する</a><br>
+                        ※ パブリックドメインとして宣言することは法的に難しい場合があるため、CC0 ライセンスを採用しています。
+                    </div>
                     <v-textarea v-if="selectedLicense === 'カスタムライセンス'" variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
                         label="カスタムライセンスの内容を入力 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
                 </div>
