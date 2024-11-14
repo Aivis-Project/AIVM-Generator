@@ -76,19 +76,19 @@
                         label="音声合成モデルの名前 (最大 80 文字 / 単独話者モデルでは話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
                         :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
                     <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details
-                        label="音声合成モデルの作成者 (複数追加・省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.creators"
+                        label="音声合成モデルの制作者 (複数追加・省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.creators"
                         multiple chips closable-chips>
                         <template v-slot:no-data>
                             <v-list-item>
                                 <v-list-item-title>
-                                    作成者名を入力し、Enter キーを押して追加してください。
+                                    制作者名を入力し、Enter キーを押して追加してください。
                                 </v-list-item-title>
                             </v-list-item>
                         </template>
                     </v-combobox>
                     <div class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
                         font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
-                        作成者名には <a class="link" href="https://docs.npmjs.com/cli/v10/configuring-npm/package-json#people-fields-author-contributors" target="_blank">npm package.json の "author", "contributors" に指定できるもの</a> と同じ書式を利用できます。<br>
+                        制作者名には <a class="link" href="https://docs.npmjs.com/cli/v10/configuring-npm/package-json#people-fields-author-contributors" target="_blank">npm package.json の "author", "contributors" に指定できるもの</a> と同じ書式を利用できます。<br>
                         例: "John Doe" / "Jane Doe &lt;jane.doe@example.com&gt;" / "John Doe &lt;john.doe@example.com&gt; (https://example.com)"
                     </div>
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
