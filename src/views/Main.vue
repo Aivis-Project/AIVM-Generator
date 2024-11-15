@@ -23,6 +23,26 @@
             AIVM / AIVMX ファイルを生成するには、Safetensors (→ AIVM) 形式のモデルファイルだけでなく、ONNX (→ AIVMX) 形式のモデルファイルも必要です。<br>
             AIVM / AIVMX ファイルのメタデータの整合性を保つため、両方のファイルを同時に生成・編集する仕様となっています。<br>
         </Description>
+        <Description class="mt-3 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
+            word-break: keep-all; overflow-wrap: anywhere;">
+            Style-Bert-VITS2 で作成した Safetensors モデルをお持ちで ONNX モデルをお持ちでない場合、下のフォームからかんたんに変換できます。<br>
+            「変換開始」ボタンを押すと、モデルファイルが変換サーバーに送信され、変換処理が始まります。変換には数分程度かかります。<br>
+            変換が完了すると、ONNX モデルが自動的にダウンロードされます。変換後にサーバー上のファイルは直ちに削除されますので、ご安心ください。<br>
+            <div class="mt-3 d-flex align-center" style="gap: 12px;">
+                <div class="d-flex flex-column" style="flex: 1;">
+                    <v-file-input variant="solo-filled" density="compact" show-size hide-details
+                        label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="convertTargetModel" style="flex: 1;" />
+                    <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
+                        label="ハイパーパラメータ (config.json) を選択" accept=".json"
+                        v-model="convertTargetHyperParameters" />
+                    <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
+                        label="スタイルベクトル (style_vectors.npy) を選択" accept=".npy" v-model="convertTargetStyleVectors" />
+                </div>
+                <v-btn color="primary" @click="convertModel">
+                    変換開始
+                </v-btn>
+            </div>
+        </Description>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
                 v-for="selectionType in ['各ファイルから新規生成', '既存の .aivm/.aivmx ファイルを選択']" :key="selectionType">
@@ -35,14 +55,14 @@
                     label="音声合成モデルのアーキテクチャを選択" v-model="selectedArchitecture" />
                 <div class="d-flex" style="gap: 12px;">
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
-                        label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="selectedModel" style="flex: 1;" />
+                        label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="selectedSafetensorsModel" style="flex: 1;" />
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="ONNX モデル (.onnx) を選択" accept=".onnx" v-model="selectedOnnxModel" style="flex: 1;" />
                 </div>
                 <div v-if="selectedArchitecture.startsWith('Style-Bert-VITS2')">
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="ハイパーパラメータ (config.json) を選択" accept=".json"
-                        v-model="selectedConfig" />
+                        v-model="selectedHyperParameters" />
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="スタイルベクトル (style_vectors.npy) を選択" accept=".npy" v-model="selectedStyleVectors" />
                 </div>
@@ -312,14 +332,64 @@ if (navigator.userAgent.includes('Firefox')) {
     Message.warning('Firefox では動作検証を行なっておらず、正常に動作しない可能性があります。最新版の Chrome をご利用ください。');
 }
 
+// ONNX 変換対象のモデルファイル
+const convertTargetModel = ref<File | undefined>(undefined);
+const convertTargetHyperParameters = ref<File | undefined>(undefined);
+const convertTargetStyleVectors = ref<File | undefined>(undefined);
+
+// ONNX 変換を実行する関数
+const convertModel = async () => {
+
+    // ファイルが選択されていない場合は処理を中断
+    if (!convertTargetModel.value) {
+        Message.error('変換対象のモデルファイルを選択してください。');
+        return;
+    }
+    if (!convertTargetHyperParameters.value || !convertTargetStyleVectors.value) {
+        Message.error('ハイパーパラメータとスタイルベクトルを選択してください。');
+        return;
+    }
+    // 現時点では未実装のため警告を表示
+    Message.warning('ONNX 変換機能は現在実装中です。もうしばらくお待ちください。');
+    return;
+
+    try {
+        // FormData を作成
+        const form_data = new FormData();
+        form_data.append('model', convertTargetModel.value);
+        form_data.append('hyper_parameters', convertTargetHyperParameters.value);
+        form_data.append('style_vectors', convertTargetStyleVectors.value);
+
+        // API にリクエストを送信
+        // Note: API エンドポイントは仮のものです
+        const response = await fetch('/api/convert-to-onnx', {
+            method: 'POST',
+            body: form_data,
+        });
+        if (!response.ok) {
+            Message.error(`ONNX モデルへの変換に失敗しました。(HTTP Error ${response.status})`);
+            return;
+        }
+
+        // レスポンスから Blob を取得
+        const blob = await response.blob();
+
+        // ダウンロードリンクを作成して自動ダウンロードを実行
+        Utils.downloadBlobData(blob, convertTargetModel.value.name.replace('.safetensors', '.onnx'));
+        Message.success('ONNX モデルへの変換が完了しました。');
+    } catch (error) {
+        Message.error(`ONNX モデルへの変換に失敗しました。${(error as Error).message}`);
+    }
+};
+
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
 const selectedArchitecture = ref<'Style-Bert-VITS2 (JP-Extra)' | 'Style-Bert-VITS2'>('Style-Bert-VITS2 (JP-Extra)');
-const selectedModel = ref<File | File[] | undefined>(undefined);
-const selectedConfig = ref<File | File[] | undefined>(undefined);
+const selectedSafetensorsModel = ref<File | File[] | undefined>(undefined);
+const selectedOnnxModel = ref<File | File[] | undefined>(undefined);
+const selectedHyperParameters = ref<File | File[] | undefined>(undefined);
 const selectedStyleVectors = ref<File | File[] | undefined>(undefined);
 const selectedAivm = ref<File | File[] | undefined>(undefined);
-const selectedOnnxModel = ref<File | File[] | undefined>(undefined);
 const selectedAivmx = ref<File | File[] | undefined>(undefined);
 
 // 1. ファイル選択 で全てのファイルが選択されているかどうか
@@ -328,10 +398,10 @@ const isAllFilesSelected = computed(() => {
     if (selectionTypeTabIndex.value === 0) {
         // Style-Bert-VITS2 系モデルは追加で config.json と style_vectors.npy が必要
         if (selectedArchitecture.value.startsWith('Style-Bert-VITS2')) {
-            return selectedModel.value !== undefined && selectedOnnxModel.value !== undefined &&
-                   selectedConfig.value !== undefined && selectedStyleVectors.value !== undefined;
+            return selectedSafetensorsModel.value !== undefined && selectedOnnxModel.value !== undefined &&
+                   selectedHyperParameters.value !== undefined && selectedStyleVectors.value !== undefined;
         } else {
-            return selectedModel.value !== undefined && selectedOnnxModel.value !== undefined;
+            return selectedSafetensorsModel.value !== undefined && selectedOnnxModel.value !== undefined;
         }
     // 「既存の .aivm/.aivmx ファイルを選択」の場合
     } else {
@@ -341,7 +411,7 @@ const isAllFilesSelected = computed(() => {
 
 // 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
 // その際全てのファイルが選択されていれば、 AIVM メタデータの生成 or 再読み込みを実行する
-watch([selectedArchitecture, selectedModel, selectedOnnxModel, selectedConfig, selectedStyleVectors, selectedAivm, selectedAivmx], () => {
+watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, selectedHyperParameters, selectedStyleVectors, selectedAivm, selectedAivmx], () => {
     aivmMetadata.value = null;
     speakerTabIndex.value = 0;
 
@@ -351,11 +421,11 @@ watch([selectedArchitecture, selectedModel, selectedOnnxModel, selectedConfig, s
             // 「各ファイルから新規生成」の場合
             Aivmlib.generateAivmMetadata(
                 selectedArchitecture.value,
-                selectedConfig.value as File,
+                selectedHyperParameters.value as File,
                 selectedStyleVectors.value as File | null,
             ).then((metadata) => {
                 // モデルファイル名からエポック数とステップ数を抽出
-                const modelFileName = (selectedModel.value as File).name;
+                const modelFileName = (selectedSafetensorsModel.value as File).name;
                 const epochMatch = modelFileName.match(/e(\d{2,})/);  // "e" の後ろに2桁以上の数字
                 const stepMatch = modelFileName.match(/s(\d{2,})/);  // "s" の後ろに2桁以上の数字
                 // エポック数を設定
@@ -467,7 +537,7 @@ async function downloadAivmFile() {
     // 「各ファイルから新規生成」の場合は Safetensors/ONNX ファイルを、
     // 「既存の .aivm/.aivmx ファイルを選択」の場合は AIVM/AIVMX ファイルを書き込み元として使用
     const safetensorsFile = selectionTypeTabIndex.value === 0
-        ? selectedModel.value as File
+        ? selectedSafetensorsModel.value as File
         : selectedAivm.value as File;
     const onnxFile = selectionTypeTabIndex.value === 0
         ? selectedOnnxModel.value as File
