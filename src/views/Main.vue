@@ -333,9 +333,9 @@ if (navigator.userAgent.includes('Firefox')) {
 }
 
 // ONNX 変換対象のモデルファイル
-const convertTargetModel = ref<File | undefined>(undefined);
-const convertTargetHyperParameters = ref<File | undefined>(undefined);
-const convertTargetStyleVectors = ref<File | undefined>(undefined);
+const convertTargetModel = ref<File | File[] | undefined>(undefined);
+const convertTargetHyperParameters = ref<File | File[] | undefined>(undefined);
+const convertTargetStyleVectors = ref<File | File[] | undefined>(undefined);
 
 // ONNX 変換を実行する関数
 const convertModel = async () => {
@@ -356,9 +356,9 @@ const convertModel = async () => {
     try {
         // FormData を作成
         const form_data = new FormData();
-        form_data.append('model', convertTargetModel.value);
-        form_data.append('hyper_parameters', convertTargetHyperParameters.value);
-        form_data.append('style_vectors', convertTargetStyleVectors.value);
+        form_data.append('model', convertTargetModel.value as File);
+        form_data.append('hyper_parameters', convertTargetHyperParameters.value as File);
+        form_data.append('style_vectors', convertTargetStyleVectors.value as File);
 
         // API にリクエストを送信
         // Note: API エンドポイントは仮のものです
@@ -375,7 +375,7 @@ const convertModel = async () => {
         const blob = await response.blob();
 
         // ダウンロードリンクを作成して自動ダウンロードを実行
-        Utils.downloadBlobData(blob, convertTargetModel.value.name.replace('.safetensors', '.onnx'));
+        Utils.downloadBlobData(blob, (convertTargetModel.value as File).name.replace('.safetensors', '.onnx'));
         Message.success('ONNX モデルへの変換が完了しました。');
     } catch (error) {
         Message.error(`ONNX モデルへの変換に失敗しました。${(error as Error).message}`);
