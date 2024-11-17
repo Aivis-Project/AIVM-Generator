@@ -128,7 +128,7 @@
                     </div>
                     <div v-else-if="selectedLicense === 'パブリックドメイン (CC0)'" class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
                         font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
-                        <a class="link" href="https://github.com/idleberg/Creative-Commons-Markdown/blob/main/4.0/zero.markdown" target="_blank">CC0 1.0 Universal のライセンス文を確認する</a><br>
+                        <a class="link" href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja" target="_blank">CC0 1.0 Universal のライセンス文を確認する</a><br>
                         ※ パブリックドメインとして宣言することは法的に難しい場合があるため、CC0 ライセンスを採用しています。
                     </div>
                     <v-textarea v-if="selectedLicense === 'カスタムライセンス'" variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
