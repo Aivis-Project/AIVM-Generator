@@ -39,7 +39,7 @@
                         <a href="https://jpchain.co.jp/news/privacy-policy/" target="_blank">プライバシーポリシー</a>
                         <a href="https://jpchain.co.jp/" target="_blank">会社概要</a>
                     </div>
-                    <div class="footer__copyright">©️ 2024 JPchain Inc.</div>
+                    <div class="footer__copyright">© 2024 JPchain Inc.</div>
                 </div>
             </div>
         </div>
