@@ -13,6 +13,10 @@
                         <Icon icon="mdi:github" height="24px" />
                         GitHub
                     </a>
+                    <a v-ripple href="https://note.com/jpchain/" target="_blank" class="footer__button">
+                        <Icon icon="material-symbols:note-outline" height="24px" />
+                        公式 note
+                    </a>
                 </div>
                 <!-- Contact Button -->
                 <a v-ripple href="https://forms.gle/sTsZGfX7aR8ox8Rs7" target="_blank" class="footer__button footer__button--dark">
