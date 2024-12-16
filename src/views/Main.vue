@@ -293,7 +293,7 @@
                 <li><strong>AIVMX (.aivmx)</strong>: より多くの環境で音声合成を実行できる形式です。
                     <ul class="ml-5">
                         <li><strong>CPU だけでも快適に音声合成を実行できます。</strong>やろうと思えば Web ブラウザでも動かせます。(ONNX モデル)</li>
-                        <li>Windows では AMD / Intel の GPU でも高速に動作します。</li>
+                        <li>Windows では AMD Radeon / Intel Arc GPU でも高速に動作します。</li>
                         <li><strong>AivisSpeech はインストールサイズを削減するため、AIVMX ファイルにのみ対応しています。</strong></li>
                     </ul>
                 </li>
