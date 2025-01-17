@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "editorconfig.editorconfig",
+        "vue.volar",
+        "yzhang.markdown-all-in-one",
+    ]
+}
