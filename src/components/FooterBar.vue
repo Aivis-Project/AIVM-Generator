@@ -37,6 +37,7 @@
                     <a href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a>
                     <a href="https://hub.aivis-project.com/" target="_blank">AivisHub</a>
                     <a href="https://aivis-project.com/builder/" target="_blank">AivisBuilder</a>
+                    <a href="https://aivis-project.com/cloud-api/" target="_blank">Aivis Cloud API</a>
                 </div>
                 <div class="footer__bottom-section">
                     <div class="footer__company-links">
@@ -44,7 +45,7 @@
                         <a href="https://jpchain.co.jp/news/2024-11-11-privacy-policy/" target="_blank">プライバシーポリシー</a>
                         <a href="https://jpchain.co.jp/" target="_blank">会社概要</a>
                     </div>
-                    <div class="footer__copyright">© 2024 JPchain Inc.</div>
+                    <div class="footer__copyright">© 2024-{{ new Date().getFullYear() }} JPchain Inc.</div>
                 </div>
             </div>
         </div>
