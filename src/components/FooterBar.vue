@@ -85,18 +85,19 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 16px;
+        height: 46px;
+        padding: 0px 16px;
         border-radius: 8px;
-        font-size: 16px;
+        font-size: 15px;
         line-height: 1.2;
         box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.25);
-        transition: opacity 0.2s ease;
+        transition: background-color 0.2s ease;
         color: rgb(var(--v-theme-text-darken-1));
         background: rgb(var(--v-theme-background));
         border: 1px solid rgb(var(--v-theme-background-lighten-2));
 
         &:hover {
-            opacity: 0.75;
+            background-color: rgb(var(--v-theme-background-lighten-1));
         }
     }
 
@@ -109,7 +110,7 @@
     &__bottom {
         display: flex;
         align-items: center;
-        gap: 28px;
+        gap: 20px;
         margin-top: 28px;
     }
 
@@ -126,13 +127,14 @@
 
     &__links {
         display: flex;
-        gap: 20px;
+        gap: 16px;
         font-weight: 700;
         font-size: 15px;
 
         a {
             color: rgb(var(--v-theme-text-darken-1));
             transition: color 0.2s;
+            flex-shrink: 0;
 
             &:hover {
                 color: rgb(var(--v-theme-primary));
@@ -150,13 +152,14 @@
 
     &__company-links {
         display: flex;
-        gap: 20px;
+        gap: 16px;
         margin-left: auto;
         font-size: 15px;
 
         a {
             color: rgb(var(--v-theme-text-darken-1));
             transition: color 0.2s;
+            flex-shrink: 0;
 
             &:hover {
                 color: rgb(var(--v-theme-primary));
