@@ -1,5 +1,28 @@
 <template>
     <main>
+        <Description class="mt-3 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
+            word-break: keep-all; overflow-wrap: anywhere; line-height: 1.7;">
+            <div class="d-flex align-center">
+                <strong style="flex-shrink: 0;">🔔 お知らせ</strong>
+                <div class="ml-5 d-flex flex-column" style="gap: 6px;">
+                    <div>
+                        <strong>✨ 既存の .aivm/.aivmx のメタデータ（UUID、など）はそのままに、モデルデータだけを差し替えられるようになりました！</strong><br>
+                        「各ファイルから新規生成」では新しいモデル UUID・話者 UUID が自動的に作成されますが、<br>
+                        「既存の .aivm/.aivmx ファイルのメタデータを編集」では元の UUID がそのまま保持されます。<br>
+                        AivisSpeech や AivisHub でも、メタデータ編集・モデルデータ差し替えを行う前と同一の音声合成モデルとして認識されます。
+                    </div>
+                    <div>
+                        <strong>🔄 ボイスサンプルが WAV から M4A (AAC) 形式に自動変換されるようになりました！</strong><br>
+                        WAV → M4A への変換により、生成後のモデルサイズが最大 10MB 以上削減されています！<br>
+                    </div>
+                    <div>
+                        <strong>💾 以前生成した .aivm/.aivmx ファイルを「既存の .aivm/.aivmx ファイルのメタデータを編集」で選択するだけで、<br>
+                        ボイスサンプルが自動的に WAV から M4A (AAC) 形式に変換されるようになりました！</strong><br>
+                        モデルサイズを簡単に削減できますので、以前音声合成モデルを制作された方もぜひ一度お試しください！🙏
+                    </div>
+                </div>
+            </div>
+        </Description>
         <Description class="mt-4" style="word-break: keep-all; overflow-wrap: anywhere;">
             <strong>このサイトでは、<a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> などで使える AI 音声合成モデルファイル (AIVM / AIVMX) を、簡単に作成・編集できます。</strong>
         </Description>
@@ -81,10 +104,11 @@
 
                 <!-- 差し替え用ファイル選択 (チェックボックスがオンの場合のみ表示) -->
                 <div v-if="enableModelReplacement" class="mt-1">
-                    <v-alert type="info" variant="tonal" density="compact" class="mb-3 py-3" style="font-size: 13.5px;">
+                    <Description class="mt-0 mb-4 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
+                        word-break: keep-all; overflow-wrap: anywhere;">
                         既存のメタデータ (UUID, 名前, アイコン, ボイスサンプルなど) を維持したまま、モデルデータを更新します。<br>
                         ハイパーパラメータ (config.json) が変更された場合、話者やスタイルの構成が更新される可能性があります。
-                    </v-alert>
+                    </Description>
                     <div class="d-flex" style="gap: 12px;">
                         <v-file-input variant="solo-filled" density="compact" show-size hide-details
                             label="差し替える学習済みモデル (.safetensors / .aivm)" accept=".safetensors,.aivm" v-model="replacementSafetensorsModel" style="flex: 1;"
@@ -109,7 +133,8 @@
                     </div>
                     <!-- 警告メッセージの表示 -->
                     <div v-if="modelReplacementWarnings.length > 0" class="mt-3">
-                        <v-alert type="warning" variant="tonal" density="compact" class="py-3" style="font-size: 13.5px;">
+                        <v-alert color="warning" variant="tonal" :border="'start'" density="compact"
+                            class="py-3" style="font-size: 13.5px;">
                             <div class="d-flex align-center">
                                 <strong>モデル差し替えによる変更点:</strong>
                             </div>
@@ -196,7 +221,7 @@
                         label="音声合成モデルのバージョン" :disabled="!isAllFilesSelected" v-model="aivmManifest.version" />
                     <div style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
                         font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
-                        同じ音声合成モデルを更新する際は、バージョンを上げることを推奨します。<a class="link" href="https://semver.org/lang/ja/" target="_blank">SemVer 2.0 形式のバージョン</a> を入力してください。
+                        <strong>同じ音声合成モデルを更新する際は、バージョンを上げることを推奨します。</strong><a class="link" href="https://semver.org/lang/ja/" target="_blank">SemVer 2.0 形式のバージョン</a> を入力してください。
                     </div>
                 </div>
             </div>
