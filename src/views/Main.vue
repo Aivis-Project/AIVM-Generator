@@ -334,11 +334,11 @@ import Utils from '@/utils';
 
 // Safari の場合は警告を表示
 if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
-    Message.warning('Safari では動作検証を行なっておらず、正常に動作しない可能性があります。最新版の Chrome をご利用ください。');
+    Message.warning('Safari では動作検証を行なっておらず、正常に動作しない可能性があります。\n最新版の Chrome をご利用ください。');
 }
 // Firefox の場合は警告を表示
 if (navigator.userAgent.includes('Firefox')) {
-    Message.warning('Firefox では動作検証を行なっておらず、正常に動作しない可能性があります。最新版の Chrome をご利用ください。');
+    Message.warning('Firefox では動作検証を行なっておらず、正常に動作しない可能性があります。\n最新版の Chrome をご利用ください。');
 }
 
 // ONNX 変換対象のモデルファイル
