@@ -6,7 +6,7 @@
                 <strong style="flex-shrink: 0;">🔔 お知らせ</strong>
                 <div class="ml-5 d-flex flex-column" style="gap: 6px;">
                     <div>
-                        <strong>✨ 既存の .aivm/.aivmx のメタデータ（UUID、など）はそのままに、モデルデータだけを差し替えられるようになりました！</strong><br>
+                        <strong>✨ 既存の .aivm/.aivmx のメタデータ（UUID、アイコンなど）はそのままに、モデルデータだけを差し替えられるようになりました！</strong><br>
                         「各ファイルから新規生成」では新しいモデル UUID・話者 UUID が自動的に作成されますが、<br>
                         「既存の .aivm/.aivmx ファイルのメタデータを編集」では元の UUID がそのまま保持されます。<br>
                         AivisSpeech や AivisHub でも、メタデータ編集・モデルデータ差し替えを行う前と同一の音声合成モデルとして認識されます。
@@ -106,7 +106,7 @@
                 <div v-if="enableModelReplacement" class="mt-1">
                     <Description class="mt-0 mb-4 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
                         word-break: keep-all; overflow-wrap: anywhere;">
-                        既存のメタデータ (UUID, 名前, アイコン, ボイスサンプルなど) を維持したまま、モデルデータを更新します。<br>
+                        既存の AIVM メタデータ (UUID, 名前, アイコン, ボイスサンプルなど) を維持したまま、モデルデータを更新します。<br>
                         ハイパーパラメータ (config.json) が変更された場合、話者やスタイルの構成が更新される可能性があります。
                     </Description>
                     <div class="d-flex" style="gap: 12px;">

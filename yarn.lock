@@ -778,10 +778,10 @@ acorn@^8.9.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.12.1.tgz#71616bdccbe25e27a54439e0046e89ca76df2248"
   integrity sha512-tcpGyI9zbizT9JbV6oYE477V6mTlXvvi0T0G3SNIYE2apm/G5huBa1+K89VGeovbg+jycCrfhl3ADxErOuO6Jg==
 
-aivmlib-web@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/aivmlib-web/-/aivmlib-web-1.1.0.tgz#e3880a4c3a73358b8d8fd648b65f7975069d955f"
-  integrity sha512-avSJBzCm1C8sAr3nOFhKwjSOsSZNt4wO6pExahIKAFsjxeJejRnNdYu0eVC4GLi1XwvlcNcuFQ4phvFMQazO5Q==
+aivmlib-web@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/aivmlib-web/-/aivmlib-web-1.1.2.tgz#3d1aa722cc52c2621d6f6cc64a0d22a95c646794"
+  integrity sha512-B8LPv2F23An2nvUxcqqyY6nGVlJSsVD1ZcA6FPOI9dcolSpcxyxHm7Q8o3CU9hnZF+WdAXSymei5QjlQJ5b5ow==
   dependencies:
     assert "^2.1.0"
     js-base64 "^3.7.7"
