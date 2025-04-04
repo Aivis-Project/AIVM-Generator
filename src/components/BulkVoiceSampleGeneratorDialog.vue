@@ -130,8 +130,8 @@ watch(() => props.modelValue, (newValue) => {
         // ダイアログが開いたときに状態をリセット
         bulkGenerationTextsInput.value = ( // デフォルトテキストをリセット
             'やったあー！テストで満点取れた〜！私とっても嬉しいな！　この漫画めっちゃ笑える〜！見てよこれ！\n' +
-            'どうして私の意見を無視するの？許せない！ムカつく！ …やめてよ本当に…。あんたなんか大っ嫌い！。\n' +
-            'ごめんね、今ちょっと風邪気味なんだよね…。それでもよければ会いたいけど、どう？　…そっか…コロナ流行ってるもんね。じゃまた今度にしよっか。元気になったらぜひご飯でも！'
+            'ごめんね、今ちょっと風邪気味なんだよね…。それでもよければ会いたいけど、どう？　………そっか…。コロナ流行ってるもんね。じゃまた今度にしよっか。元気になったらぜひご飯でも！\n' +
+            'おはようございます！現在時刻は7時30分です。今日の東京の気温は18度で、天気は晴れです。10時からミーティング、午後3時に歯医者の予約があります。今日も素敵な一日になりますように。'
         );
         bulkGenerationProgress.value = 0;
         bulkGenerationCurrentStep.value = 0;
@@ -280,7 +280,7 @@ async function uninstallTemporaryAivmxFile(baseUrl: string, uuid: string): Promi
         const timeoutId = setTimeout(() => {
             console.warn(`UUID: ${uuid} のアンインストールがタイムアウトしました。`);
             cleanupController.abort();
-        }, 15000); // 15秒タイムアウト
+        }, 30 * 1000); // 30秒でタイムアウト
 
         const response = await fetch(`${baseUrl}/aivm_models/${uuid}/uninstall`, {
             method: 'DELETE',
@@ -296,7 +296,7 @@ async function uninstallTemporaryAivmxFile(baseUrl: string, uuid: string): Promi
         } else if (response.ok) {
             console.log(`一時モデルのアンインストールに成功しました: ${uuid}`);
         } else {
-            console.log(`一時モデル ${uuid} はアンインストール時に見つかりませんでした（既に削除済み？）。`);
+            console.log(`一時モデル ${uuid} はアンインストール時に見つかりませんでした。（既に削除済み？）`);
         }
     } catch (ex) {
         if (ex instanceof Error && ex.name === 'AbortError') {
@@ -492,7 +492,7 @@ async function generateBulkVoiceSamples() {
         for (const targetStyle of targetStyles) {
             let speakerUuidForIdCalculation: string;
 
-            // 一時インストールの場合、対応する一時的な話者UUIDを取得する
+            // 一時インストールの場合、対応する一時的な話者 UUID を取得する
             if (isModelTemporarilyInstalled.value) {
                 const tempSpeakerUuid = tempSpeakerUuidMap.get(targetStyle.originalSpeakerUuid);
                 if (!tempSpeakerUuid) {
