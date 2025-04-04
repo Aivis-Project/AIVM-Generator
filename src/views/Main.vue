@@ -107,7 +107,8 @@
                     <Description class="mt-0 mb-4 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
                         word-break: keep-all; overflow-wrap: anywhere;">
                         既存の AIVM メタデータ (UUID, 名前, アイコン, ボイスサンプルなど) を維持したまま、モデルデータを更新します。<br>
-                        ハイパーパラメータ (config.json) が変更された場合、話者やスタイルの構成が更新される可能性があります。
+                        ハイパーパラメータ (config.json) が変更された場合、話者やスタイルの構成が更新される可能性があります。<br>
+                        差し替え先のモデルデータと関連ファイルすべてを選択してください。
                     </Description>
                     <div class="d-flex" style="gap: 12px;">
                         <v-file-input variant="solo-filled" density="compact" show-size hide-details
@@ -162,10 +163,10 @@
             <div class="mt-5 d-flex" style="gap: 20px;">
                 <div class="w-100">
                     <v-text-field variant="solo-filled" density="compact" hide-details
-                        label="音声合成モデルの名前 (最大 80 文字 / 単独話者モデルでは話者名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="aivmManifest.name"
+                        label="音声合成モデルの名前 (最大 80 文字 / 単独話者モデルでは話者名と自動同期されます)" :disabled="!isMetadataEditable" v-model="aivmManifest.name"
                         :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
                     <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details
-                        label="音声合成モデルの制作者 (複数追加・省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.creators"
+                        label="音声合成モデルの制作者 (複数追加・省略可)" :disabled="!isMetadataEditable" v-model="aivmManifest.creators"
                         multiple chips closable-chips>
                         <template v-slot:no-data>
                             <v-list-item>
@@ -181,9 +182,9 @@
                         例: "John Doe" / "Jane Doe &lt;jane.doe@example.com&gt;" / "John Doe &lt;john.doe@example.com&gt; (https://example.com)"
                     </div>
                     <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
-                        label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.description" />
+                        label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isMetadataEditable" v-model="aivmManifest.description" />
                     <v-select variant="solo-filled" class="mt-3" density="compact" hide-details
-                        label="音声合成モデルのライセンス" :disabled="!isAllFilesSelected" v-model="selectedLicense"
+                        label="音声合成モデルのライセンス" :disabled="!isMetadataEditable" v-model="selectedLicense"
                         :items="['ACML (Aivis Common Model License)', 'ACML-NC (Aivis Common Model License - Non Commercial)', 'パブリックドメイン (CC0)', 'カスタムライセンス', 'この音声合成モデルの公開・配布を行わない']" />
                     <div v-if="selectedLicense === 'ACML (Aivis Common Model License)'" class="mt-2" style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
                         font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
@@ -201,24 +202,24 @@
                         ※ パブリックドメインとして宣言することは法的に難しい場合があるため、CC0 ライセンスを採用しています。
                     </div>
                     <v-textarea v-if="selectedLicense === 'カスタムライセンス'" variant="solo-filled" class="mt-3" density="compact" rows="8" hide-details
-                        label="カスタムライセンスの内容を入力 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
+                        label="カスタムライセンスの内容を入力 (Markdown 形式またはプレーンテキスト)" :disabled="!isMetadataEditable" v-model="aivmManifest.license" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
                     <v-text-field variant="solo-filled" density="compact" hide-details
                         :readonly="!developerMode"
-                        label="AIVM マニフェストバージョン (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.manifest_version" />
+                        label="AIVM マニフェストバージョン (読み取り専用)" :disabled="!isMetadataEditable" v-model="aivmManifest.manifest_version" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
-                        label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
+                        label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isMetadataEditable" v-model="aivmManifest.model_architecture" />
                     <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
-                        label="音声合成モデルのエポック数 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_epochs" />
+                        label="音声合成モデルのエポック数 (省略可)" :disabled="!isMetadataEditable" v-model="aivmManifest.training_epochs" />
                     <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
-                        label="音声合成モデルのステップ数 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_steps" />
+                        label="音声合成モデルのステップ数 (省略可)" :disabled="!isMetadataEditable" v-model="aivmManifest.training_steps" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details
                         :readonly="!developerMode"
-                        label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
+                        label="音声合成モデルの UUID (読み取り専用)" :disabled="!isMetadataEditable" v-model="aivmManifest.uuid" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact"
                         :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
-                        label="音声合成モデルのバージョン" :disabled="!isAllFilesSelected" v-model="aivmManifest.version" />
+                        label="音声合成モデルのバージョン" :disabled="!isMetadataEditable" v-model="aivmManifest.version" />
                     <div style="margin-left: 5px; border-left: 3px solid rgb(var(--v-theme-text-darken-2)); padding-left: 10px;
                         font-size: 11px; color: rgb(var(--v-theme-text-darken-2));">
                         <strong>同じ音声合成モデルを更新する際は、バージョンを上げることを推奨します。</strong><a class="link" href="https://semver.org/lang/ja/" target="_blank">SemVer 2.0 形式のバージョン</a> を入力してください。
@@ -226,7 +227,7 @@
                 </div>
             </div>
             <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center"
-                :disabled="!isAllFilesSelected" v-model="speakerTabIndex">
+                :disabled="!isMetadataEditable" v-model="speakerTabIndex">
                 <v-tab style="text-transform: none !important;" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
                     話者{{ `${speaker.local_id + 1} (${speaker.name})` }}
                 </v-tab>
@@ -234,7 +235,7 @@
             <v-window v-model="speakerTabIndex">
                 <v-window-item class="aivm-speaker mt-3" v-for="speaker in aivmManifest.speakers" :key="speaker.uuid">
                     <div class="mt-2 mb-4 d-flex" style="gap: 20px;">
-                        <div class="aivm-speaker-style__icon ml-5" :class="{ 'aivm-speaker-style__icon--disabled': !isAllFilesSelected }" style="position: relative;">
+                        <div class="aivm-speaker-style__icon ml-5" :class="{ 'aivm-speaker-style__icon--disabled': !isMetadataEditable }" style="position: relative;">
                             <img :src="speaker.icon"
                                 v-ftooltip="'クリックまたはドラッグ&ドロップでこの話者全体のアイコンを変更できます。'"
                                 @click="Utils.selectFile('image/*').then((file) => handleIconClick(file, speaker.icon, true)
@@ -254,22 +255,22 @@
                         </div>
                         <div class="w-100">
                             <v-text-field variant="solo-filled" density="compact" hide-details
-                                label="話者の名前 (最大 80 文字 / 単独話者モデルではモデル名と自動同期されます)" :disabled="!isAllFilesSelected" v-model="speaker.name"
+                                label="話者の名前 (最大 80 文字 / 単独話者モデルではモデル名と自動同期されます)" :disabled="!isMetadataEditable" v-model="speaker.name"
                                 :rules="[v => !!v || '話者の名前は必須です。']" />
                             <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details readonly multiple chips
-                                label="話者の対応言語 (BCP 47 言語タグ / 読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.supported_languages" />
+                                label="話者の対応言語 (BCP 47 言語タグ / 読み取り専用)" :disabled="!isMetadataEditable" v-model="speaker.supported_languages" />
                         </div>
                         <div style="width: 360px; flex-shrink: 0;">
                             <v-text-field variant="solo-filled" density="compact" hide-details
                                 :readonly="!developerMode"
-                                label="話者の UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.uuid" />
+                                label="話者の UUID (読み取り専用)" :disabled="!isMetadataEditable" v-model="speaker.uuid" />
                             <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
-                                label="話者のローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.local_id" />
+                                label="話者のローカル ID (読み取り専用)" :disabled="!isMetadataEditable" v-model="speaker.local_id" />
                         </div>
                     </div>
                     <div>
                         <div class="aivm-speaker-style" v-for="(style, index) in speaker.styles" :key="style.local_id"
-                            :class="{ 'aivm-speaker-style--disabled': !isAllFilesSelected }">
+                            :class="{ 'aivm-speaker-style--disabled': !isMetadataEditable }">
                             <div class="aivm-speaker-style__icon" style="position: relative;">
                                 <img :src="style.icon ?? speaker.icon"
                                     v-ftooltip="'クリックまたはドラッグ&ドロップでスタイルごとにアイコンを変更できます。未指定時は話者全体のアイコンが使われます。'"
@@ -291,10 +292,10 @@
                             <div class="d-flex align-center" style="height: 120px;">
                                 <div class="w-100">
                                     <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
-                                        label="スタイルの名前 (最大 20 文字)" :disabled="!isAllFilesSelected" v-model="style.name"
+                                        label="スタイルの名前 (最大 20 文字)" :disabled="!isMetadataEditable" v-model="style.name"
                                         :rules="[v => !!v || 'スタイルの名前は必須です。']" />
                                     <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
-                                        label="スタイルのローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="style.local_id" />
+                                        label="スタイルのローカル ID (読み取り専用)" :disabled="!isMetadataEditable" v-model="style.local_id" />
                                 </div>
                             </div>
                             <div>
@@ -351,7 +352,7 @@
                 </v-window-item>
             </v-window>
             <v-textarea variant="solo-filled" class="mt-5" density="compact" rows="8" hide-details readonly
-                label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
+                label="ハイパーパラメータ (読み取り専用)" :disabled="!isMetadataEditable"
                 :model-value="JSON.stringify(currentAivmMetadata?.hyper_parameters, null, 4)" />
         </v-form>
         <Heading2 class="mt-6">3. AIVM / AIVMX ファイルを生成</Heading2>
@@ -375,7 +376,7 @@
         </Description>
         <div class="mt-5 d-flex justify-center">
             <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="14px"
-                :disabled="!isAllFilesSelected" @click="downloadAivmFile">
+                :disabled="!isMetadataEditable" @click="downloadAivmFile">
                 上記メタデータで AIVM / AIVMX ファイル (.aivm / .aivmx) を生成
             </ActionButton>
         </div>
@@ -548,14 +549,31 @@ const replacementStyleVectors = ref<File | File[] | undefined>(undefined);
 const modelReplacementWarnings = ref<string[]>([]);
 const isModelReplacing = ref(false);
 
+// すべてのモデル差し替え用ファイルが選択されているかどうか
+const isAllReplacementFilesSelected = computed(() => {
+    return enableModelReplacement.value &&
+        replacementSafetensorsModel.value !== undefined &&
+        replacementOnnxModel.value !== undefined &&
+        replacementHyperParameters.value !== undefined &&
+        replacementStyleVectors.value !== undefined;
+});
+
+// モデル差し替えが有効で必要なファイルがすべて揃っている場合にのみメタデータ編集可能
+const isMetadataEditable = computed(() => {
+    // 通常モードの場合は、すべてのファイルが選択されていれば編集可能
+    if (!enableModelReplacement.value) {
+        return isAllFilesSelected.value;
+    }
+    // 差し替えモードの場合は、すべての差し替え用ファイルが選択されていて初めて編集可能
+    return isAllFilesSelected.value && isAllReplacementFilesSelected.value;
+});
+
 // モデル差し替え用ファイルが選択された時の処理
-watch([replacementHyperParameters, replacementStyleVectors], async () => {
+watch([replacementSafetensorsModel, replacementOnnxModel, replacementHyperParameters, replacementStyleVectors], async () => {
     // 既存の AIVM / AIVMX ファイルが選択されていて、かつ差し替えモードが有効で、必要なファイルが揃っている場合
     if (
         currentAivmMetadata.value &&
-        enableModelReplacement.value &&
-        replacementHyperParameters.value &&
-        replacementStyleVectors.value &&
+        isAllReplacementFilesSelected.value &&
         !isModelReplacing.value
     ) {
         try {
@@ -605,7 +623,7 @@ watch(enableModelReplacement, (newValue) => {
         modelReplacementWarnings.value = [];
     } else {
         // 差し替えモードがオンになったらガイダンスを表示
-        Message.info('モデル差し替えモードを有効にしました。差し替えるファイルを選択してください。');
+        Message.info('モデル差し替えモードを有効にしました。\n差し替え先のモデルデータと関連ファイルすべてを選択してください。');
     }
 });
 
@@ -900,14 +918,13 @@ async function downloadAivmFile() {
     }
 
     // モデルファイルの決定
-    // - 差し替えモードの場合：差し替え用のモデルファイルを使用
+    // - 差し替えモードの場合：差し替え用のモデルファイルを使用（すべてのファイルが揃っている場合のみ）
     // - 「各ファイルから新規生成」の場合：選択された Safetensors / ONNX ファイルを使用
     // - 「既存の .aivm/.aivmx ファイルのメタデータを編集」かつ差し替えなしの場合：選択された AIVM / AIVMX ファイルを使用
     let safetensorsFile: File;
     let onnxFile: File;
-
-    if (enableModelReplacement.value && replacementSafetensorsModel.value && replacementOnnxModel.value) {
-        // 差し替えモードの場合
+    if (isAllReplacementFilesSelected.value) {
+        // 差し替えモードでかつすべてのファイルが揃っている場合
         safetensorsFile = replacementSafetensorsModel.value as File;
         onnxFile = replacementOnnxModel.value as File;
     } else if (selectionTypeTabIndex.value === 0) {
