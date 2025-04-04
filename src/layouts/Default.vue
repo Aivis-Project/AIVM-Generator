@@ -18,7 +18,7 @@ import HeaderBar from '@/components/HeaderBar.vue';
 // レイアウト
 .layout {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 74px 1fr;
     height: 100%;
 
