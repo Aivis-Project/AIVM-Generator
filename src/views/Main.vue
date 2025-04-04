@@ -81,8 +81,8 @@
             <Heading2 class="mt-1">2. メタデータ編集</Heading2>
             <!-- 開発者モードのチェックボックス -->
             <v-checkbox class="ml-2 mt-1" density="compact" hide-details color="transparent"
-                v-model="developer_mode" style="opacity: 0; cursor: default; user-select: none;"
-                @mouseenter="developer_mode_hover_count++" />
+                v-model="developerMode" style="opacity: 0; cursor: default; user-select: none;"
+                @mouseenter="developerModeHoverCount++" />
         </div>
         <Description class="mt-3">
             ここで設定したメタデータは、AIVM / AIVMX ファイル内に埋め込まれる <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-manifest-specification-version-10" target="_blank">AIVM マニフェスト</a> に反映されます。<br>
@@ -137,7 +137,7 @@
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
                     <v-text-field variant="solo-filled" density="compact" hide-details
-                        :readonly="!developer_mode"
+                        :readonly="!developerMode"
                         label="AIVM マニフェストバージョン (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.manifest_version" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                         label="音声合成モデルのアーキテクチャ (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.model_architecture" />
@@ -146,7 +146,7 @@
                     <v-number-input variant="solo-filled" class="mt-3" density="compact" hide-details :min="1"
                         label="音声合成モデルのステップ数 (省略可)" :disabled="!isAllFilesSelected" v-model="aivmManifest.training_steps" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details
-                        :readonly="!developer_mode"
+                        :readonly="!developerMode"
                         label="音声合成モデルの UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="aivmManifest.uuid" />
                     <v-text-field variant="solo-filled" class="mt-3" density="compact"
                         :rules="[v => !!v || 'バージョンは必須です。', v => Utils.SEMVER_REGEX.test(v) || 'SemVer 2.0 形式のバージョンを入力してください。']"
@@ -193,7 +193,7 @@
                         </div>
                         <div style="width: 360px; flex-shrink: 0;">
                             <v-text-field variant="solo-filled" density="compact" hide-details
-                                :readonly="!developer_mode"
+                                :readonly="!developerMode"
                                 label="話者の UUID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.uuid" />
                             <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                                 label="話者のローカル ID (読み取り専用)" :disabled="!isAllFilesSelected" v-model="speaker.local_id" />
@@ -284,7 +284,7 @@
             </v-window>
             <v-textarea variant="solo-filled" class="mt-5" density="compact" rows="8" hide-details readonly
                 label="ハイパーパラメータ (読み取り専用)" :disabled="!isAllFilesSelected"
-                :model-value="JSON.stringify(aivmMetadata?.hyper_parameters, null, 4)" />
+                :model-value="JSON.stringify(currentAivmMetadata?.hyper_parameters, null, 4)" />
         </v-form>
         <Heading2 class="mt-6">3. AIVM / AIVMX ファイルを生成</Heading2>
         <Description class="mt-5 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
@@ -422,7 +422,7 @@ const isAllFilesSelected = computed(() => {
 // 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
 // その際全てのファイルが選択されていれば、 AIVM メタデータの生成 or 再読み込みを実行する
 watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, selectedHyperParameters, selectedStyleVectors, selectedAivm, selectedAivmx], () => {
-    aivmMetadata.value = null;
+    currentAivmMetadata.value = null;
     speakerTabIndex.value = 0;
 
     // 全てのファイルが選択されている場合
@@ -446,7 +446,7 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
                 if (stepMatch) {
                     metadata.manifest.training_steps = parseInt(stepMatch[1], 10);
                 }
-                aivmMetadata.value = metadata;
+                currentAivmMetadata.value = metadata;
             }).catch((error) => {
                 Message.error(error.message);
                 console.error(error);
@@ -466,7 +466,7 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
                     console.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
                     return;
                 }
-                aivmMetadata.value = AivmMetadataInAivm;
+                currentAivmMetadata.value = AivmMetadataInAivm;
             }).catch((error) => {
                 Message.error(error.message);
                 console.error(error);
@@ -475,18 +475,41 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
     }
 });
 
-// 2. メタデータ編集 でのフォーム
+// 2. メタデータ編集 での状態
 const form = ref<VForm | null>(null);
-
-// 2. メタデータ編集 での AIVM メタデータの状態
-const aivmMetadata = ref<AivmMetadata | null>(null);
-const aivmManifest = computed(() => {
-    // AIVM メタデータが読み込まれていない場合はデフォルト値を返す
-    return aivmMetadata.value?.manifest ?? structuredClone(DefaultAivmManifest);
-});
-
-// 2. メタデータ編集 で選択されている話者のタブインデックス
 const speakerTabIndex = ref(0);
+
+// 2. メタデータ編集 でファイルから読み込んだ AIVM メタデータ
+const currentAivmMetadata = ref<AivmMetadata | null>(null);
+
+// 選択中の AIVM メタデータが変更された際に実行する処理
+watch(currentAivmMetadata, async (newValue) => {
+    if (newValue) {
+        // ライセンスに応じて selectedLicense を設定
+        if (newValue.manifest.license === LICENSE_ACML) {
+            selectedLicense.value = 'ACML (Aivis Common Model License)';
+        } else if (newValue.manifest.license === LICENSE_ACML_NC) {
+            selectedLicense.value = 'ACML-NC (Aivis Common Model License - Non Commercial)';
+        } else if (newValue.manifest.license === LICENSE_CC0) {
+            selectedLicense.value = 'パブリックドメイン (CC0)';
+        } else if (newValue.manifest.license === null) {
+            selectedLicense.value = 'この音声合成モデルの公開・配布を行わない';
+        } else {
+            selectedLicense.value = 'カスタムライセンス';
+        }
+
+        // ffmpeg がロードされている場合、WAV 形式のボイスサンプルを検出して M4A に変換
+        if (isFFmpegLoaded.value) {
+            await detectAndConvertWavSamples();
+        }
+    }
+}, { immediate: true });
+
+// 編集中の AIVM マニフェスト (3. AIVM / AIVMX ファイルを生成 で書き込む元データとして用いる)
+// AIVM メタデータが読み込まれていない場合はデフォルト値を返す
+const aivmManifest = computed(() => {
+    return currentAivmMetadata.value?.manifest ?? structuredClone(DefaultAivmManifest);
+});
 
 // 話者が1人の場合は話者名と音声合成モデル名を相互に同期
 watch(() => aivmManifest.value.name, (name) => {
@@ -538,6 +561,8 @@ type License = (
     'この音声合成モデルの公開・配布を行わない' |
     'カスタムライセンス'
 );
+
+// ライセンスが変更された際の処理
 const selectedLicense = ref<License>('ACML (Aivis Common Model License)');
 watch(selectedLicense, (newValue) => {
     switch (newValue) {
@@ -565,38 +590,80 @@ watch(selectedLicense, (newValue) => {
     }
 });
 
-watch(aivmMetadata, (newValue) => {
-    if (newValue) {
-        // ライセンスに応じて selectedLicense を設定
-        if (newValue.manifest.license === LICENSE_ACML) {
-            selectedLicense.value = 'ACML (Aivis Common Model License)';
-        } else if (newValue.manifest.license === LICENSE_ACML_NC) {
-            selectedLicense.value = 'ACML-NC (Aivis Common Model License - Non Commercial)';
-        } else if (newValue.manifest.license === LICENSE_CC0) {
-            selectedLicense.value = 'パブリックドメイン (CC0)';
-        } else if (newValue.manifest.license === null) {
-            selectedLicense.value = 'この音声合成モデルの公開・配布を行わない';
-        } else {
-            selectedLicense.value = 'カスタムライセンス';
-        }
-    }
-}, { immediate: true });
+// WAV 形式のボイスサンプルを検出して随時 M4A に変換する関数
+const detectAndConvertWavSamples = async () => {
+    if (!aivmManifest.value) return;
 
-// 開発者モードの状態管理
-const developer_mode = ref(false);
-const developer_mode_hover_count = ref(0);
+    // WAV 形式のボイスサンプルを検索
+    const wavSamples: {
+        voiceSample: AivmManifest['speakers'][number]['styles'][number]['voice_samples'][number],
+        speakerUuid: string,
+        styleLocalId: number,
+        sampleIndex: number
+    }[] = [];
 
-// 開発者モードのホバー回数が10回を超えたら開発者モードを有効化できるようにする
-watch(developer_mode_hover_count, (count) => {
-    if (count >= 10) {
-        // チェックボックスを表示
-        const checkbox = document.querySelector('.v-checkbox') as HTMLElement;
-        if (checkbox) {
-            checkbox.style.opacity = '0.1';
-            checkbox.style.cursor = 'pointer';
+    // すべての話者、スタイル、ボイスサンプルをチェック
+    aivmManifest.value.speakers.forEach(speaker => {
+        speaker.styles.forEach(style => {
+            style.voice_samples.forEach((voiceSample, sampleIndex) => {
+                // Data URL から MIME タイプを抽出
+                const mimeMatch = voiceSample.audio.match(/^data:(audio\/wav);base64,/);
+                if (mimeMatch && mimeMatch[1] === 'audio/wav') {
+                    wavSamples.push({
+                        voiceSample,
+                        speakerUuid: speaker.uuid,
+                        styleLocalId: style.local_id,
+                        sampleIndex
+                    });
+                }
+            });
+        });
+    });
+
+    // WAV 形式のボイスサンプルが見つかった場合
+    if (wavSamples.length > 0) {
+        Message.info(`WAV 形式のボイスサンプル (${wavSamples.length}個) を M4A (AAC) 形式に変換しています...`);
+
+        // 各 WAV サンプルを順番に M4A に変換
+        for (const [index, sample] of wavSamples.entries()) {
+            const sampleKey = getVoiceSampleKey(sample.speakerUuid, sample.styleLocalId, sample.sampleIndex);
+            voiceSampleEncodingStatus.value = { ...voiceSampleEncodingStatus.value, [sampleKey]: true };
+
+            try {
+                // Data URL から Blob を作成
+                const base64Data = sample.voiceSample.audio.replace(/^data:audio\/wav;base64,/, '');
+                const binaryData = atob(base64Data);
+                const arrayBuffer = new ArrayBuffer(binaryData.length);
+                const uint8Array = new Uint8Array(arrayBuffer);
+
+                for (let i = 0; i < binaryData.length; i++) {
+                    uint8Array[i] = binaryData.charCodeAt(i);
+                }
+
+                const wavBlob = new Blob([arrayBuffer], { type: 'audio/wav' });
+                const wavFile = new File([wavBlob], `sample_${index}.wav`, { type: 'audio/wav' });
+
+                // 音声ファイルを M4A にエンコード
+                const dataUrl = await Utils.encodeAudioToM4ADataURL(wavFile, ffmpegInstance, {
+                    bitrate: '192k',
+                });
+
+                // ボイスサンプルの音声データを更新
+                sample.voiceSample.audio = dataUrl;
+                console.log(`Converted WAV to M4A for sample: ${sampleKey} (${index + 1}/${wavSamples.length})`);
+            } catch (ex) {
+                console.error(`Failed to convert WAV to M4A for sample: ${sampleKey}`, ex);
+            } finally {
+                voiceSampleEncodingStatus.value = { ...voiceSampleEncodingStatus.value, [sampleKey]: false };
+            }
+
+            // UI の更新を待つ
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
+
+        Message.success(`${wavSamples.length}個のボイスサンプルを M4A (AAC) 形式に変換しました。\n音声合成モデルのファイルサイズが数 MB ~ 数十 MB 程度削減されています。`);
     }
-});
+};
 
 // ffmpeg.wasm のインスタンスと状態
 const ffmpegInstance = new FFmpeg();  // ref にすると動作しない
@@ -648,7 +715,7 @@ const selectAndEncodeVoiceSample = async (
     try {
         console.log(`Starting encoding for voice sample: ${sampleKey}`);
 
-        // Utils.encodeAudioToM4ADataURL を使用してエンコード
+        // M4A にエンコード
         const dataUrl = await Utils.encodeAudioToM4ADataURL(file, ffmpegInstance, {
             bitrate: '192k',
         });
@@ -656,11 +723,11 @@ const selectAndEncodeVoiceSample = async (
         // Data URL をボイスサンプルに設定
         voiceSample.audio = dataUrl;
         console.log(`Set encoded audio for sample: ${sampleKey}`);
-        Message.success('ボイスサンプルを M4A にエンコードしました。');
+        Message.success('ボイスサンプルを M4A (AAC) 形式に変換しました。');
 
     } catch (ex) {
         console.error('Failed to encode voice sample:', ex);
-        Message.error(`ボイスサンプルの M4A へのエンコードに失敗しました。\n${(ex as Error).message}`);
+        Message.error(`ボイスサンプルの M4A (AAC) 形式への変換に失敗しました。\n${(ex as Error).message}`);
     } finally {
         // エンコード状態を終了に設定
         voiceSampleEncodingStatus.value = { ...voiceSampleEncodingStatus.value, [sampleKey]: false };
@@ -670,7 +737,7 @@ const selectAndEncodeVoiceSample = async (
 
 // 3. AIVM / AIVMX ファイルを生成 での処理
 async function downloadAivmFile() {
-    if (aivmMetadata.value === null) {
+    if (currentAivmMetadata.value === null) {
         Message.error('AIVM メタデータが読み込まれていません。');
         return;
     }
@@ -692,10 +759,10 @@ async function downloadAivmFile() {
 
     // AIVM と AIVMX の両方を生成
     Promise.all([
-        Aivmlib.writeAivmMetadata(safetensorsFile, aivmMetadata.value),
-        Aivmlib.writeAivmxMetadata(onnxFile, aivmMetadata.value),
+        Aivmlib.writeAivmMetadata(safetensorsFile, currentAivmMetadata.value),
+        Aivmlib.writeAivmxMetadata(onnxFile, currentAivmMetadata.value),
     ]).then(([aivmBlob, aivmxBlob]) => {
-        console.log('Generated AIVM metadata:', aivmMetadata.value);
+        console.log('Generated AIVM metadata:', currentAivmMetadata.value);
         // モデル名をファイル名として両方をダウンロード
         Utils.downloadBlobData(aivmBlob, `${aivmManifest.value.name}.aivm`);
         Utils.downloadBlobData(aivmxBlob, `${aivmManifest.value.name}.aivmx`);
@@ -704,6 +771,22 @@ async function downloadAivmFile() {
         console.error(error);
     });
 }
+
+// 開発者モードの状態管理
+const developerMode = ref(false);
+const developerModeHoverCount = ref(0);
+
+// 開発者モードのホバー回数が10回を超えたら開発者モードを有効化できるようにする
+watch(developerModeHoverCount, (count) => {
+    if (count >= 10) {
+        // チェックボックスを表示
+        const checkbox = document.querySelector('.v-checkbox') as HTMLElement;
+        if (checkbox) {
+            checkbox.style.opacity = '0.1';
+            checkbox.style.cursor = 'pointer';
+        }
+    }
+});
 
 </script>
 <style lang="scss" scoped>
