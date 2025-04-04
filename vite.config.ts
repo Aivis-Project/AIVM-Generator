@@ -31,6 +31,11 @@ export default defineConfig({
         alias: {'@': fileURLToPath(new URL('./src', import.meta.url))},
         extensions: ['.js', '.json', '.jsx', '.mjs', '.ts', '.tsx', '.vue'],
     },
+    // FFmpeg.wasm を使うために必要
+    // ref: https://github.com/ffmpegwasm/ffmpeg.wasm/issues/594
+    optimizeDeps: {
+        exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+    },
     // SASS / SCSS の設定
     css: {
         preprocessorOptions: {

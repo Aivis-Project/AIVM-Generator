@@ -250,16 +250,21 @@
                                         </template>
                                     </Heading3>
                                 </div>
-                                <!-- TODO: M4A 圧縮・ボイスサンプル自動生成 -->
-                                <div class="mt-3 aivm-voice-sample" v-for="voiceSample in style.voice_samples" :key="voiceSample.audio">
+                                <div class="mt-3 aivm-voice-sample" v-for="(voiceSample, sampleIndex) in style.voice_samples" :key="sampleIndex">
                                     <div class="d-flex flex-column w-100" style="gap: 8px;">
-                                        <div class="d-flex align-center">
+                                        <div class="d-flex align-center" style="position: relative;">
+                                            <v-overlay
+                                                :model-value="voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false"
+                                                contained
+                                                class="align-center justify-center"
+                                                persistent>
+                                                <v-progress-circular color="primary" indeterminate size="36"></v-progress-circular>
+                                            </v-overlay>
                                             <audio class="w-100" style="height: 36px;" controls :src="voiceSample.audio"></audio>
                                             <ActionButton icon="fluent:headphones-sound-wave-20-filled" class="ml-3" font_size="13.5px"
-                                                @click="Utils.selectFile('audio/*').then(async (file) => {
-                                                    if (file) voiceSample.audio = await Utils.fileToDataURL(file);
-                                                })">
-                                                ファイル選択
+                                                :disabled="!isFFmpegLoaded || (voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false)"
+                                                @click="selectAndEncodeVoiceSample(voiceSample, speaker.uuid, style.local_id, sampleIndex)">
+                                                {{ isFFmpegLoaded ? 'ファイル選択' : '準備中...' }}
                                             </ActionButton>
                                         </div>
                                         <v-text-field variant="solo-filled" density="compact" hide-details
@@ -267,7 +272,8 @@
                                             :rules="[v => !!v || '書き起こし文は必須です。']" />
                                     </div>
                                     <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13.5px"
-                                        @click="style.voice_samples.splice(style.voice_samples.indexOf(voiceSample), 1)">
+                                        :disabled="(voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false)"
+                                        @click="style.voice_samples.splice(sampleIndex, 1)">
                                         削除
                                     </ActionButton>
                                 </div>
@@ -309,9 +315,11 @@
 </template>
 <script lang="ts" setup>
 
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { toBlobURL } from '@ffmpeg/util';
 import Aivmlib from 'aivmlib-web';
-import { AivmMetadata, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from 'aivmlib-web';
-import { computed, ref, watch } from 'vue';
+import { AivmMetadata, AivmManifest, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from 'aivmlib-web';
+import { computed, onMounted, ref, watch } from 'vue';
 import { VForm } from 'vuetify/components';
 import { VNumberInput } from 'vuetify/labs/components';
 
@@ -508,7 +516,7 @@ async function handleIconClick(file: File | null, currentIcon: string | null, fo
         // 正方形にクロップ
         const croppedFile = await Utils.cropImageToSquare(file);
         // Data URL に変換
-        const dataUrl = await Utils.fileToDataURL(croppedFile);
+        const dataUrl = await Utils.blobToDataURL(croppedFile);
         // 選択されたアイコンにする
         return dataUrl;
     // キャンセルされた場合
@@ -522,6 +530,143 @@ async function handleIconClick(file: File | null, currentIcon: string | null, fo
         }
     }
 }
+
+type License = (
+    'ACML (Aivis Common Model License)' |
+    'ACML-NC (Aivis Common Model License - Non Commercial)' |
+    'パブリックドメイン (CC0)' |
+    'この音声合成モデルの公開・配布を行わない' |
+    'カスタムライセンス'
+);
+const selectedLicense = ref<License>('ACML (Aivis Common Model License)');
+watch(selectedLicense, (newValue) => {
+    switch (newValue) {
+        case 'ACML (Aivis Common Model License)':
+            aivmManifest.value.license = LICENSE_ACML;
+            break;
+        case 'ACML-NC (Aivis Common Model License - Non Commercial)':
+            aivmManifest.value.license = LICENSE_ACML_NC;
+            break;
+        case 'パブリックドメイン (CC0)':
+            aivmManifest.value.license = LICENSE_CC0;
+            break;
+        case 'この音声合成モデルの公開・配布を行わない':
+            aivmManifest.value.license = null;
+            break;
+        case 'カスタムライセンス':
+            if (aivmManifest.value.license === null ||
+                aivmManifest.value.license === LICENSE_ACML ||
+                aivmManifest.value.license === LICENSE_ACML_NC ||
+                aivmManifest.value.license === LICENSE_CC0) {
+                // 未設定、もしくは定義済みライセンスの場合は空文字列にリセット
+                aivmManifest.value.license = '';
+            }
+            break;
+    }
+});
+
+watch(aivmMetadata, (newValue) => {
+    if (newValue) {
+        // ライセンスに応じて selectedLicense を設定
+        if (newValue.manifest.license === LICENSE_ACML) {
+            selectedLicense.value = 'ACML (Aivis Common Model License)';
+        } else if (newValue.manifest.license === LICENSE_ACML_NC) {
+            selectedLicense.value = 'ACML-NC (Aivis Common Model License - Non Commercial)';
+        } else if (newValue.manifest.license === LICENSE_CC0) {
+            selectedLicense.value = 'パブリックドメイン (CC0)';
+        } else if (newValue.manifest.license === null) {
+            selectedLicense.value = 'この音声合成モデルの公開・配布を行わない';
+        } else {
+            selectedLicense.value = 'カスタムライセンス';
+        }
+    }
+}, { immediate: true });
+
+// 開発者モードの状態管理
+const developer_mode = ref(false);
+const developer_mode_hover_count = ref(0);
+
+// 開発者モードのホバー回数が10回を超えたら開発者モードを有効化できるようにする
+watch(developer_mode_hover_count, (count) => {
+    if (count >= 10) {
+        // チェックボックスを表示
+        const checkbox = document.querySelector('.v-checkbox') as HTMLElement;
+        if (checkbox) {
+            checkbox.style.opacity = '0.1';
+            checkbox.style.cursor = 'pointer';
+        }
+    }
+});
+
+// ffmpeg.wasm のインスタンスと状態
+const ffmpegInstance = new FFmpeg();  // ref にすると動作しない
+const isFFmpegLoaded = ref(false);
+const voiceSampleEncodingStatus = ref<Record<string, boolean>>({});
+
+// コンポーネントマウント時に ffmpeg をロード
+onMounted(async () => {
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';  // Vite/ESM 環境に適したパス
+    const ffmpeg = ffmpegInstance;
+    ffmpeg.on('log', ({ message }) => {
+        console.log(`[ffmpeg] ${message}`); // ffmpeg のログをコンソールに出力
+    });
+    try {
+        console.log('Loading ffmpeg-core.js...');
+        const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+        console.log('Loading ffmpeg-core.wasm...');
+        const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+        await ffmpeg.load({ coreURL, wasmURL });
+        isFFmpegLoaded.value = true;
+        console.log('ffmpeg.wasm loaded successfully.');
+    } catch (ex) {
+        console.error('Failed to load ffmpeg.wasm:', ex);
+        Message.error(`FFmpeg.wasm のロードに失敗しました。\n${(ex as Error).message}`);
+    }
+});
+
+// ボイスサンプルの状態管理用のキーを生成するヘルパー関数
+const getVoiceSampleKey = (speaker_uuid: string, style_local_id: number, sample_index: number): string => {
+    return `${speaker_uuid}-${style_local_id}-${sample_index}`;
+};
+
+// ボイスサンプルファイルを選択し、M4A にエンコードする関数
+const selectAndEncodeVoiceSample = async (
+    voiceSample: AivmManifest['speakers'][number]['styles'][number]['voice_samples'][number],
+    speaker_uuid: string,
+    style_local_id: number,
+    sample_index: number,
+) => {
+    const sampleKey = getVoiceSampleKey(speaker_uuid, style_local_id, sample_index);
+
+    // ファイル選択ダイアログを開く
+    const file = await Utils.selectFile('audio/*');
+    if (!file) return; // ファイルが選択されなかった場合は何もしない
+
+    // エンコード状態を開始に設定
+    voiceSampleEncodingStatus.value = { ...voiceSampleEncodingStatus.value, [sampleKey]: true };
+
+    try {
+        console.log(`Starting encoding for voice sample: ${sampleKey}`);
+
+        // Utils.encodeAudioToM4ADataURL を使用してエンコード
+        const dataUrl = await Utils.encodeAudioToM4ADataURL(file, ffmpegInstance, {
+            bitrate: '192k',
+        });
+
+        // Data URL をボイスサンプルに設定
+        voiceSample.audio = dataUrl;
+        console.log(`Set encoded audio for sample: ${sampleKey}`);
+        Message.success('ボイスサンプルを M4A にエンコードしました。');
+
+    } catch (ex) {
+        console.error('Failed to encode voice sample:', ex);
+        Message.error(`ボイスサンプルの M4A へのエンコードに失敗しました。\n${(ex as Error).message}`);
+    } finally {
+        // エンコード状態を終了に設定
+        voiceSampleEncodingStatus.value = { ...voiceSampleEncodingStatus.value, [sampleKey]: false };
+        console.log(`Encoding process finished for sample: ${sampleKey}`);
+    }
+};
 
 // 3. AIVM / AIVMX ファイルを生成 での処理
 async function downloadAivmFile() {
@@ -559,74 +704,6 @@ async function downloadAivmFile() {
         console.error(error);
     });
 }
-
-type License = (
-    'ACML (Aivis Common Model License)' |
-    'ACML-NC (Aivis Common Model License - Non Commercial)' |
-    'パブリックドメイン (CC0)' |
-    'この音声合成モデルの公開・配布を行わない' |
-    'カスタムライセンス'
-);
-const selectedLicense = ref<License>('ACML (Aivis Common Model License)');
-watch(selectedLicense, (newValue) => {
-    switch (newValue) {
-        case 'ACML (Aivis Common Model License)':
-            aivmManifest.value.license = LICENSE_ACML;
-            break;
-        case 'ACML-NC (Aivis Common Model License - Non Commercial)':
-            aivmManifest.value.license = LICENSE_ACML_NC;
-            break;
-        case 'パブリックドメイン (CC0)':
-            aivmManifest.value.license = LICENSE_CC0;
-            break;
-        case 'この音声合成モデルの公開・配布を行わない':
-            aivmManifest.value.license = null;
-            break;
-        case 'カスタムライセンス':
-            if (aivmManifest.value.license === null ||
-                aivmManifest.value.license === LICENSE_ACML ||
-                aivmManifest.value.license === LICENSE_ACML_NC ||
-                aivmManifest.value.license === LICENSE_CC0) {
-                // 未設定、もしくは定義済みライセンスの場合は空文字列にリセット
-                aivmManifest.value.license = '';
-            }
-            break;
-    }
-});
-
-// aivmMetadataの監視に追加
-watch(aivmMetadata, (newValue) => {
-    if (newValue) {
-        // ライセンスに応じてselectedLicenseを設定
-        if (newValue.manifest.license === LICENSE_ACML) {
-            selectedLicense.value = 'ACML (Aivis Common Model License)';
-        } else if (newValue.manifest.license === LICENSE_ACML_NC) {
-            selectedLicense.value = 'ACML-NC (Aivis Common Model License - Non Commercial)';
-        } else if (newValue.manifest.license === LICENSE_CC0) {
-            selectedLicense.value = 'パブリックドメイン (CC0)';
-        } else if (newValue.manifest.license === null) {
-            selectedLicense.value = 'この音声合成モデルの公開・配布を行わない';
-        } else {
-            selectedLicense.value = 'カスタムライセンス';
-        }
-    }
-}, { immediate: true });
-
-// 開発者モードの状態管理
-const developer_mode = ref(false);
-const developer_mode_hover_count = ref(0);
-
-// 開発者モードのホバー回数が10回を超えたら開発者モードを有効化できるようにする
-watch(developer_mode_hover_count, (count) => {
-    if (count >= 10) {
-        // チェックボックスを表示
-        const checkbox = document.querySelector('.v-checkbox') as HTMLElement;
-        if (checkbox) {
-            checkbox.style.opacity = '0.1';
-            checkbox.style.cursor = 'pointer';
-        }
-    }
-});
 
 </script>
 <style lang="scss" scoped>

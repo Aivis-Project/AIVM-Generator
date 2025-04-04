@@ -1,3 +1,6 @@
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
+
 
 /**
  * 共通ユーティリティ
@@ -7,6 +10,21 @@ export default class Utils {
     // semver の正規表現
     // ref: https://semver.org/lang/ja/
     static readonly SEMVER_REGEX = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+
+    /**
+     * Blob または File オブジェクトを Data URL に変換する
+     * @param file Blob または File オブジェクト
+     * @returns Data URL を返す Promise
+     */
+    static async blobToDataURL(blob: Blob): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('ファイルの読み込み中にエラーが発生しました。'));
+            reader.readAsDataURL(blob);
+        });
+    }
 
 
     /**
@@ -83,17 +101,61 @@ export default class Utils {
 
 
     /**
-     * File オブジェクトを Data URL に変換する
-     * @param file File オブジェクト
-     * @returns Data URL を返す Promise
+     * 音声ファイルを M4A (AAC) にエンコードして Data URL として返す
+     * @param file 音声ファイル
+     * @param ffmpeg FFmpeg インスタンス（既にロード済みであること）
+     * @param options エンコードオプション
+     * @returns エンコードされた音声ファイルの Data URL を返す Promise
      */
-    static async fileToDataURL(file: File): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(new Error('ファイルの読み込み中にエラーが発生しました。'));
-            reader.readAsDataURL(file);
-        });
+    static async encodeAudioToM4ADataURL(
+        file: File,
+        ffmpeg: FFmpeg,
+        options: {
+            bitrate?: string, // ビットレート（例: '192k'）
+            onProgress?: (progress: number) => void, // 進捗コールバック
+        } = {},
+    ): Promise<string> {
+
+        // オプションのデフォルト値
+        const bitrate = options.bitrate || '192k';
+
+        // ファイル名を生成（元の拡張子を維持）
+        const inputFilename = `input.${file.name.split('.').pop() || 'bin'}`; // input.wav, input.mp3 など
+        const outputFilename = 'output.m4a';
+
+        try {
+            // ファイルを ffmpeg に書き込む
+            await ffmpeg.writeFile(inputFilename, await fetchFile(file));
+
+            // M4A (AAC) にエンコード
+            await ffmpeg.exec([
+                '-i', inputFilename,
+                '-vn',
+                '-c:a', 'aac',
+                '-b:a', bitrate,
+                outputFilename
+            ]);
+
+            // エンコードされたファイルを読み込む
+            const data = await ffmpeg.readFile(outputFilename);
+
+            // エンコードされたファイルを Blob (MIME: audio/mp4) に変換
+            const blob = new Blob([(data as Uint8Array).buffer], { type: 'audio/mp4' });
+
+            // 一時ファイルを削除
+            await ffmpeg.deleteFile(inputFilename);
+            await ffmpeg.deleteFile(outputFilename);
+
+            // Blob から Data URL に変換
+            return await Utils.blobToDataURL(blob);
+        } catch (ex) {
+            console.error('Failed to encode audio:', ex);
+            if (ex instanceof Error) {
+                throw new Error(`音声ファイルのエンコードに失敗しました: ${ex.message}`);
+            } else {
+                throw new Error(`音声ファイルのエンコードに失敗しました: ${ex}`);
+            }
+        }
     }
 
 

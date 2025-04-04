@@ -13,6 +13,8 @@
         "node": "20.16.0"
     },
     "dependencies": {
+        "@ffmpeg/ffmpeg": "^0.12.15",
+        "@ffmpeg/util": "^0.12.2",
         "aivmlib-web": "^1.0.0",
         "assert": "^2.1.0",
         "floating-vue": "^5.2.2",
