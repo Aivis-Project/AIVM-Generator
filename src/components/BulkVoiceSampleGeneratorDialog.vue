@@ -552,7 +552,7 @@ async function generateBulkVoiceSamples() {
                 const wavBlob = await synthesizeSpeech(baseUrl, text, globalStyleId);
 
                 // M4A にエンコード
-                bulkGenerationStatusMessage.value = `[${bulkGenerationCurrentStep.value}/${bulkGenerationTotalSteps.value}] 話者: ${targetStyle.speakerName}, スタイル: ${targetStyle.styleName} M4A エンコード中...`;
+                bulkGenerationStatusMessage.value = `[${bulkGenerationCurrentStep.value}/${bulkGenerationTotalSteps.value}] 話者: ${targetStyle.speakerName}, スタイル: ${targetStyle.styleName} (ID: ${globalStyleId}) M4A エンコード中...`;
                 const wavFile = new File([wavBlob], 'temp.wav', { type: 'audio/wav' });
                 const m4aDataUrl = await Utils.encodeAudioToM4ADataURL(wavFile, props.ffmpegInstance, { bitrate: '192k' });
 
