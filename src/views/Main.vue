@@ -25,10 +25,10 @@
         </Description>
         <Description class="mt-3 px-5 py-3" style="border-left: 4px solid rgb(var(--v-theme-primary)); background-color: rgb(var(--v-theme-background-darken-1));
             word-break: keep-all; overflow-wrap: anywhere;">
-            Style-Bert-VITS2 で作成した Safetensors モデルをお持ちで ONNX モデルをお持ちでない場合、下のフォームからかんたんに変換できます。<br>
+            <strong>Style-Bert-VITS2 で作成した Safetensors モデルはあるが、ONNX モデルをお持ちでない場合、下のフォームからかんたんに変換できます。</strong><br>
             「変換開始」ボタンを押すと、モデルファイルが変換サーバーに送信され、変換処理が始まります。変換には数分程度かかります。<br>
             変換が完了すると、ONNX モデルが自動的にダウンロードされます。変換後にサーバー上のファイルは直ちに削除されますので、ご安心ください。<br>
-            ※現在開発中につきまだ動作しません（3月下旬頃実装予定）。今すぐ Style-Bert-VITS2 で作成したモデルを ONNX に変換したい方は最新の dev ブランチに切り替えた上で <a class="link" href="https://github.com/litagin02/Style-Bert-VITS2/blob/dev/convert_onnx.py" target="_blank">こちらの ONNX 変換スクリプト</a> をご利用ください（デベロッパー向け）。<br>
+            ※現在開発中につきまだ動作しません（2025年4月中に実装予定）。今すぐ Style-Bert-VITS2 で作成したモデルを ONNX に変換したい方は最新の dev ブランチに切り替えた上で <a class="link" href="https://github.com/litagin02/Style-Bert-VITS2/blob/dev/convert_onnx.py" target="_blank">こちらの ONNX 変換スクリプト</a> をご利用ください（デベロッパー向け）。<br>
             <div class="mt-3 d-flex align-center" style="gap: 12px;">
                 <div class="d-flex flex-column" style="flex: 1;">
                     <v-file-input variant="solo-filled" density="compact" show-size hide-details
@@ -46,7 +46,7 @@
         </Description>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center" v-model="selectionTypeTabIndex">
             <v-tab style="text-transform: none !important;"
-                v-for="selectionType in ['各ファイルから新規生成', '既存の .aivm/.aivmx ファイルを選択']" :key="selectionType">
+                v-for="selectionType in ['各ファイルから新規生成', '既存の .aivm/.aivmx ファイルのメタデータを編集']" :key="selectionType">
                 {{selectionType}}
             </v-tab>
         </v-tabs>
@@ -354,6 +354,7 @@ const convertModel = async () => {
     Message.warning('ONNX 変換機能は現在実装中です。もうしばらくお待ちください。');
     return;
 
+    // eslint-disable-next-line no-unreachable
     try {
         // FormData を作成
         const form_data = new FormData();
@@ -404,7 +405,7 @@ const isAllFilesSelected = computed(() => {
         } else {
             return selectedSafetensorsModel.value !== undefined && selectedOnnxModel.value !== undefined;
         }
-    // 「既存の .aivm/.aivmx ファイルを選択」の場合
+    // 「既存の .aivm/.aivmx ファイルのメタデータを編集」の場合
     } else {
         return selectedAivm.value !== undefined && selectedAivmx.value !== undefined;
     }
@@ -443,7 +444,7 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
                 console.error(error);
             });
         } else {
-            // 「既存の .aivm/.aivmx ファイルを選択」の場合
+            // 「既存の .aivm/.aivmx ファイルのメタデータを編集」の場合
             // AIVM と AIVMX の両方からメタデータを読み込み、一致することを確認
             Promise.all([
                 Aivmlib.readAivmMetadata(selectedAivm.value as File),
@@ -536,7 +537,7 @@ async function downloadAivmFile() {
     }
 
     // 「各ファイルから新規生成」の場合は Safetensors/ONNX ファイルを、
-    // 「既存の .aivm/.aivmx ファイルを選択」の場合は AIVM/AIVMX ファイルを書き込み元として使用
+    // 「既存の .aivm/.aivmx ファイルのメタデータを編集」の場合は AIVM/AIVMX ファイルを書き込み元として使用
     const safetensorsFile = selectionTypeTabIndex.value === 0
         ? selectedSafetensorsModel.value as File
         : selectedAivm.value as File;
