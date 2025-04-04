@@ -266,6 +266,12 @@
                                 label="話者の UUID (読み取り専用)" :disabled="!isMetadataEditable" v-model="speaker.uuid" />
                             <v-text-field variant="solo-filled" class="mt-3" density="compact" hide-details readonly
                                 label="話者のローカル ID (読み取り専用)" :disabled="!isMetadataEditable" v-model="speaker.local_id" />
+                            <!-- ボイスサンプル一括生成ボタン -->
+                            <ActionButton secondary class="mt-3" icon="fluent:wand-24-filled" font_size="13.5px" style="width: 100%;"
+                                :disabled="!isMetadataEditable || !isFFmpegLoaded"
+                                @click="showBulkGenerationDialog">
+                                {{ isFFmpegLoaded ? 'ボイスサンプルを一括生成' : '準備中...' }}
+                            </ActionButton>
                         </div>
                     </div>
                     <div>
@@ -380,6 +386,22 @@
                 上記メタデータで AIVM / AIVMX ファイル (.aivm / .aivmx) を生成
             </ActionButton>
         </div>
+
+        <!-- ボイスサンプル一括生成ダイアログ -->
+        <BulkVoiceSampleGeneratorDialog
+            v-model="isBulkGenerationDialogVisible"
+            :ffmpegInstance="ffmpegInstance"
+            :isFFmpegLoaded="isFFmpegLoaded"
+            :currentMetadata="currentAivmMetadata"
+            :replacementOnnxModel="replacementOnnxModel ? (replacementOnnxModel as File) : null"
+            :selectedOnnxModel="selectedOnnxModel ? (selectedOnnxModel as File) : null"
+            :selectedAivmxFile="selectedAivmx ? (selectedAivmx as File) : null"
+            :isReplacementMode="enableModelReplacement"
+            :isAllReplacementFilesSelected="isAllReplacementFilesSelected"
+            @complete="handleBulkGenerationComplete"
+            @cancel="handleBulkGenerationCancel"
+        />
+
     </main>
 </template>
 <script lang="ts" setup>
@@ -393,6 +415,7 @@ import { VForm } from 'vuetify/components';
 import { VNumberInput } from 'vuetify/labs/components';
 
 import ActionButton from '@/components/ActionButton.vue';
+import BulkVoiceSampleGeneratorDialog from '@/components/BulkVoiceSampleGeneratorDialog.vue';
 import Description from '@/components/Description.vue';
 import Heading2 from '@/components/Heading2.vue';
 import Heading3 from '@/components/Heading3.vue';
@@ -951,6 +974,60 @@ async function downloadAivmFile() {
         console.error(error);
     });
 }
+
+// --- ボイスサンプル一括生成関連の状態 ---
+const isBulkGenerationDialogVisible = ref(false);
+
+/**
+ * 一括生成ダイアログを表示
+ */
+function showBulkGenerationDialog() {
+    // ダイアログを表示する前のチェック
+    if (!isMetadataEditable.value) {
+        Message.error('ファイル選択とメタデータ編集が完了してから実行してください。');
+        return;
+    }
+    if (!isFFmpegLoaded.value) {
+        Message.error('ボイスサンプル変換機能 (FFmpeg) の準備が完了していません。');
+        return;
+    }
+    if (!currentAivmMetadata.value) {
+        Message.error('AIVM メタデータが読み込まれていません。');
+        return;
+    }
+    // 一時インストールに必要なソースファイルが利用可能か確認
+    let canProceed = false;
+    if (enableModelReplacement.value && isAllReplacementFilesSelected.value && replacementOnnxModel.value) {
+        canProceed = true; // 差し替えモードには ONNX/AIVMX ソースが必要
+    } else if (selectionTypeTabIndex.value === 0 && selectedOnnxModel.value) {
+        canProceed = true; // 新規生成には ONNX ソースが必要
+    } else if (selectionTypeTabIndex.value === 1 && !enableModelReplacement.value && selectedAivmx.value) {
+        canProceed = true; // 既存編集には AIVMX ソースが必要
+    }
+    if (!canProceed && !(selectionTypeTabIndex.value === 1 && !enableModelReplacement.value && selectedAivm.value)) {
+        Message.error('一時インストールに必要な ONNX または AIVMX ファイルが選択されていません。');
+        return;
+    }
+
+    isBulkGenerationDialogVisible.value = true;
+}
+
+/**
+ * 一括生成完了時のハンドラ
+ */
+function handleBulkGenerationComplete(updatedMetadata: AivmMetadata) {
+    // ダイアログからの結果でメインのメタデータ状態を更新
+    currentAivmMetadata.value = updatedMetadata;
+    isBulkGenerationDialogVisible.value = false; // ダイアログを閉じる
+}
+
+/**
+ * 一括生成キャンセル時のハンドラ
+ */
+function handleBulkGenerationCancel() {
+    isBulkGenerationDialogVisible.value = false; // ダイアログを閉じる
+}
+// --- 一括生成ここまで ---
 
 </script>
 <style lang="scss" scoped>
