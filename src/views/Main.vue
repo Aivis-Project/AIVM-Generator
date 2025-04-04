@@ -624,12 +624,18 @@ const detectAndConvertWavSamples = async () => {
     if (wavSamples.length > 0) {
         Message.info(`WAV 形式のボイスサンプル (${wavSamples.length}個) を M4A (AAC) 形式に変換しています...`);
 
+        // サイズ削減量の合計（バイト単位）
+        let totalSizeReduction = 0;
+
         // 各 WAV サンプルを順番に M4A に変換
         for (const [index, sample] of wavSamples.entries()) {
             const sampleKey = getVoiceSampleKey(sample.speakerUuid, sample.styleLocalId, sample.sampleIndex);
             voiceSampleEncodingStatus.value = { ...voiceSampleEncodingStatus.value, [sampleKey]: true };
 
             try {
+                // 変換前のサイズを記録
+                const originalSize = sample.voiceSample.audio.length;
+
                 // Data URL から Blob を作成
                 const base64Data = sample.voiceSample.audio.replace(/^data:audio\/wav;base64,/, '');
                 const binaryData = atob(base64Data);
@@ -648,9 +654,16 @@ const detectAndConvertWavSamples = async () => {
                     bitrate: '192k',
                 });
 
+                // 変換後のサイズを計算
+                const newSize = dataUrl.length;
+
+                // サイズ削減量を計算して合計に加算
+                const sizeReduction = originalSize - newSize;
+                totalSizeReduction += sizeReduction;
+
                 // ボイスサンプルの音声データを更新
                 sample.voiceSample.audio = dataUrl;
-                console.log(`Converted WAV to M4A for sample: ${sampleKey} (${index + 1}/${wavSamples.length})`);
+                console.log(`Converted WAV to M4A for sample: ${sampleKey} (${index + 1}/${wavSamples.length}), Size reduction: ${(sizeReduction / 1024 / 1024).toFixed(2)} MB`);
             } catch (ex) {
                 console.error(`Failed to convert WAV to M4A for sample: ${sampleKey}`, ex);
             } finally {
@@ -661,7 +674,10 @@ const detectAndConvertWavSamples = async () => {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        Message.success(`${wavSamples.length}個のボイスサンプルを M4A (AAC) 形式に変換しました。\n音声合成モデルのファイルサイズが数 MB ~ 数十 MB 程度削減されています。`);
+        // MB 単位でサイズ削減量を表示（小数点以下2桁で四捨五入）
+        const reductionInMB = (totalSizeReduction / 1024 / 1024).toFixed(2);
+
+        Message.success(`${wavSamples.length}個のボイスサンプルを M4A (AAC) 形式に変換し、\n音声合成モデルのファイルサイズが合計 ${reductionInMB} MB 削減されました。`);
     }
 };
 
