@@ -60,7 +60,7 @@
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="ONNX モデル (.onnx) を選択" accept=".onnx" v-model="selectedOnnxModel" style="flex: 1;" />
                 </div>
-                <div v-if="selectedArchitecture.startsWith('Style-Bert-VITS2')">
+                <div>
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="ハイパーパラメータ (config.json) を選択" accept=".json"
                         v-model="selectedHyperParameters" />
@@ -75,14 +75,57 @@
                     <v-file-input variant="solo-filled" density="compact" show-size hide-details
                         label="AIVMX ファイル (.aivmx) を選択" accept=".aivmx" v-model="selectedAivmx" style="flex: 1;" />
                 </div>
+
+                <!-- モデル差し替えチェックボックス -->
+                <v-checkbox class="mt-1" label="モデルデータと関連ファイルを差し替える" v-model="enableModelReplacement" hide-details />
+
+                <!-- 差し替え用ファイル選択 (チェックボックスがオンの場合のみ表示) -->
+                <div v-if="enableModelReplacement" class="mt-1">
+                    <v-alert type="info" variant="tonal" density="compact" class="mb-3 py-3" style="font-size: 13.5px;">
+                        既存のメタデータ (UUID, 名前, アイコン, ボイスサンプルなど) を維持したまま、モデルデータを更新します。<br>
+                        ハイパーパラメータ (config.json) が変更された場合、話者やスタイルの構成が更新される可能性があります。
+                    </v-alert>
+                    <div class="d-flex" style="gap: 12px;">
+                        <v-file-input variant="solo-filled" density="compact" show-size hide-details
+                            label="差し替える学習済みモデル (.safetensors / .aivm)" accept=".safetensors,.aivm" v-model="replacementSafetensorsModel" style="flex: 1;"
+                            :disabled="isModelReplacing" />
+                        <v-file-input variant="solo-filled" density="compact" show-size hide-details
+                            label="差し替える ONNX モデル (.onnx / .aivmx)" accept=".onnx,.aivmx" v-model="replacementOnnxModel" style="flex: 1;"
+                            :disabled="isModelReplacing" />
+                    </div>
+                    <div>
+                        <div class="d-flex align-center">
+                            <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
+                                label="差し替えるハイパーパラメータ (config.json)" accept=".json" v-model="replacementHyperParameters"
+                                :disabled="isModelReplacing" style="flex: 1;" />
+                            <v-progress-circular v-if="isModelReplacing" class="ml-3" indeterminate color="primary" size="24" />
+                        </div>
+                        <div class="d-flex align-center">
+                            <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
+                                label="差し替えるスタイルベクトル (style_vectors.npy)" accept=".npy" v-model="replacementStyleVectors"
+                                :disabled="isModelReplacing" style="flex: 1;" />
+                            <v-progress-circular v-if="isModelReplacing" class="ml-3" indeterminate color="primary" size="24" />
+                        </div>
+                    </div>
+                    <!-- 警告メッセージの表示 -->
+                    <div v-if="modelReplacementWarnings.length > 0" class="mt-3">
+                        <v-alert type="warning" variant="tonal" density="compact" class="py-3" style="font-size: 13.5px;">
+                            <div class="d-flex align-center">
+                                <strong>モデル差し替えによる変更点:</strong>
+                            </div>
+                            <ul class="ml-5 mt-1 mb-0">
+                                <li v-for="(warning, index) in modelReplacementWarnings" :key="index">{{ warning }}</li>
+                            </ul>
+                        </v-alert>
+                    </div>
+                </div>
             </v-window-item>
          </v-window>
         <div class="d-flex align-center">
             <Heading2 class="mt-1">2. メタデータ編集</Heading2>
             <!-- 開発者モードのチェックボックス -->
-            <v-checkbox class="ml-2 mt-1" density="compact" hide-details color="transparent"
-                v-model="developerMode" style="opacity: 0; cursor: default; user-select: none;"
-                @mouseenter="developerModeHoverCount++" />
+            <v-checkbox class="ml-2 mt-1 developer-mode-checkbox" density="compact" hide-details color="transparent"
+                v-model="developerMode" />
         </div>
         <Description class="mt-3">
             ここで設定したメタデータは、AIVM / AIVMX ファイル内に埋め込まれる <a class="link" href="https://github.com/Aivis-Project/aivmlib#aivm-manifest-specification-version-10" target="_blank">AIVM マニフェスト</a> に反映されます。<br>
@@ -132,7 +175,7 @@
                         <a class="link" href="https://creativecommons.org/publicdomain/zero/1.0/deed.ja" target="_blank">CC0 1.0 Universal のライセンス文を確認する</a><br>
                         ※ パブリックドメインとして宣言することは法的に難しい場合があるため、CC0 ライセンスを採用しています。
                     </div>
-                    <v-textarea v-if="selectedLicense === 'カスタムライセンス'" variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
+                    <v-textarea v-if="selectedLicense === 'カスタムライセンス'" variant="solo-filled" class="mt-3" density="compact" rows="8" hide-details
                         label="カスタムライセンスの内容を入力 (Markdown 形式またはプレーンテキスト)" :disabled="!isAllFilesSelected" v-model="aivmManifest.license" />
                 </div>
                 <div style="width: 360px; flex-shrink: 0;">
@@ -319,7 +362,7 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
 import Aivmlib from 'aivmlib-web';
 import { AivmMetadata, AivmManifest, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from 'aivmlib-web';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch, toRaw } from 'vue';
 import { VForm } from 'vuetify/components';
 import { VNumberInput } from 'vuetify/labs/components';
 
@@ -406,13 +449,8 @@ const selectedAivmx = ref<File | File[] | undefined>(undefined);
 const isAllFilesSelected = computed(() => {
     // 「各ファイルから新規生成」の場合
     if (selectionTypeTabIndex.value === 0) {
-        // Style-Bert-VITS2 系モデルは追加で config.json と style_vectors.npy が必要
-        if (selectedArchitecture.value.startsWith('Style-Bert-VITS2')) {
-            return selectedSafetensorsModel.value !== undefined && selectedOnnxModel.value !== undefined &&
-                   selectedHyperParameters.value !== undefined && selectedStyleVectors.value !== undefined;
-        } else {
-            return selectedSafetensorsModel.value !== undefined && selectedOnnxModel.value !== undefined;
-        }
+        return selectedSafetensorsModel.value !== undefined && selectedOnnxModel.value !== undefined &&
+            selectedHyperParameters.value !== undefined && selectedStyleVectors.value !== undefined;
     // 「既存の .aivm/.aivmx ファイルのメタデータを編集」の場合
     } else {
         return selectedAivm.value !== undefined && selectedAivmx.value !== undefined;
@@ -466,7 +504,8 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
                     console.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
                     return;
                 }
-                currentAivmMetadata.value = AivmMetadataInAivm;
+                // AIVMX 側のメタデータを使う
+                currentAivmMetadata.value = AivmMetadataInAivmx;
             }).catch((error) => {
                 Message.error(error.message);
                 console.error(error);
@@ -475,9 +514,80 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
     }
 });
 
+// モデル差し替え用の状態
+const enableModelReplacement = ref(false);
+const replacementSafetensorsModel = ref<File | File[] | undefined>(undefined);
+const replacementOnnxModel = ref<File | File[] | undefined>(undefined);
+const replacementHyperParameters = ref<File | File[] | undefined>(undefined);
+const replacementStyleVectors = ref<File | File[] | undefined>(undefined);
+const modelReplacementWarnings = ref<string[]>([]);
+const isModelReplacing = ref(false);
+
+// モデル差し替え用ファイルが選択された時の処理
+watch([replacementHyperParameters, replacementStyleVectors], async () => {
+    // 既存の AIVM / AIVMX ファイルが選択されていて、かつ差し替えモードが有効で、必要なファイルが揃っている場合
+    if (
+        currentAivmMetadata.value &&
+        enableModelReplacement.value &&
+        replacementHyperParameters.value &&
+        replacementStyleVectors.value &&
+        !isModelReplacing.value
+    ) {
+        try {
+            isModelReplacing.value = true;
+
+            // 既存のメタデータを新しいハイパーパラメータとスタイルベクトルで更新
+            const { updated_metadata, warnings } = await Aivmlib.updateAivmMetadata(
+                // updateAivmMetadata() 内部で structuredClone() が使われている関係で、
+                // Proxy に包まれたオブジェクトではなく、生のオブジェクトを明示的に渡す必要がある
+                // ref: https://stackoverflow.com/questions/72632173/unable-to-use-structuredclone-on-value-of-ref-variable
+                toRaw(currentAivmMetadata.value),
+                replacementHyperParameters.value as File,
+                replacementStyleVectors.value as File,
+            );
+
+            console.log('Model replacement process completed:', warnings);
+
+            // 更新されたメタデータを反映
+            currentAivmMetadata.value = updated_metadata;
+            modelReplacementWarnings.value = warnings;
+
+            // 警告があれば表示
+            if (warnings.length > 0) {
+                Message.warning(
+                    `モデルの差し替えにより以下の変更が行われました:\n${warnings.join('\n')}`
+                );
+            } else {
+                Message.success('モデルの差し替えが正常に反映されました。');
+            }
+        } catch (error) {
+            console.error('Model replacement process failed:', error);
+            Message.error(`モデル差し替え処理中にエラーが発生しました: ${(error as Error).message}`);
+        } finally {
+            isModelReplacing.value = false;
+        }
+    }
+});
+
+// 差し替えモードが切り替わった時の処理
+watch(enableModelReplacement, (newValue) => {
+    if (!newValue) {
+        // 差し替えモードがオフになったら選択を解除
+        replacementSafetensorsModel.value = undefined;
+        replacementOnnxModel.value = undefined;
+        replacementHyperParameters.value = undefined;
+        replacementStyleVectors.value = undefined;
+        modelReplacementWarnings.value = [];
+    } else {
+        // 差し替えモードがオンになったらガイダンスを表示
+        Message.info('モデル差し替えモードを有効にしました。差し替えるファイルを選択してください。');
+    }
+});
+
 // 2. メタデータ編集 での状態
 const form = ref<VForm | null>(null);
 const speakerTabIndex = ref(0);
+const developerMode = ref(false);
 
 // 2. メタデータ編集 でファイルから読み込んだ AIVM メタデータ
 const currentAivmMetadata = ref<AivmMetadata | null>(null);
@@ -590,6 +700,37 @@ watch(selectedLicense, (newValue) => {
     }
 });
 
+// ffmpeg.wasm のインスタンスと状態
+const ffmpegInstance = new FFmpeg();  // ref にすると動作しない
+const isFFmpegLoaded = ref(false);
+const voiceSampleEncodingStatus = ref<Record<string, boolean>>({});
+
+// コンポーネントマウント時に ffmpeg をロード
+onMounted(async () => {
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';  // Vite/ESM 環境に適したパス
+    const ffmpeg = ffmpegInstance;
+    ffmpeg.on('log', ({ message }) => {
+        console.log(`[ffmpeg] ${message}`); // ffmpeg のログをコンソールに出力
+    });
+    try {
+        console.log('Loading ffmpeg-core.js...');
+        const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+        console.log('Loading ffmpeg-core.wasm...');
+        const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+        await ffmpeg.load({ coreURL, wasmURL });
+        isFFmpegLoaded.value = true;
+        console.log('ffmpeg.wasm loaded successfully.');
+    } catch (ex) {
+        console.error('Failed to load ffmpeg.wasm:', ex);
+        Message.error(`FFmpeg.wasm のロードに失敗しました。\n${(ex as Error).message}`);
+    }
+});
+
+// ボイスサンプルの状態管理用のキーを生成するヘルパー関数
+const getVoiceSampleKey = (speaker_uuid: string, style_local_id: number, sample_index: number): string => {
+    return `${speaker_uuid}-${style_local_id}-${sample_index}`;
+};
+
 // WAV 形式のボイスサンプルを検出して随時 M4A に変換する関数
 const detectAndConvertWavSamples = async () => {
     if (!aivmManifest.value) return;
@@ -681,37 +822,6 @@ const detectAndConvertWavSamples = async () => {
     }
 };
 
-// ffmpeg.wasm のインスタンスと状態
-const ffmpegInstance = new FFmpeg();  // ref にすると動作しない
-const isFFmpegLoaded = ref(false);
-const voiceSampleEncodingStatus = ref<Record<string, boolean>>({});
-
-// コンポーネントマウント時に ffmpeg をロード
-onMounted(async () => {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';  // Vite/ESM 環境に適したパス
-    const ffmpeg = ffmpegInstance;
-    ffmpeg.on('log', ({ message }) => {
-        console.log(`[ffmpeg] ${message}`); // ffmpeg のログをコンソールに出力
-    });
-    try {
-        console.log('Loading ffmpeg-core.js...');
-        const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
-        console.log('Loading ffmpeg-core.wasm...');
-        const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
-        await ffmpeg.load({ coreURL, wasmURL });
-        isFFmpegLoaded.value = true;
-        console.log('ffmpeg.wasm loaded successfully.');
-    } catch (ex) {
-        console.error('Failed to load ffmpeg.wasm:', ex);
-        Message.error(`FFmpeg.wasm のロードに失敗しました。\n${(ex as Error).message}`);
-    }
-});
-
-// ボイスサンプルの状態管理用のキーを生成するヘルパー関数
-const getVoiceSampleKey = (speaker_uuid: string, style_local_id: number, sample_index: number): string => {
-    return `${speaker_uuid}-${style_local_id}-${sample_index}`;
-};
-
 // ボイスサンプルファイルを選択し、M4A にエンコードする関数
 const selectAndEncodeVoiceSample = async (
     voiceSample: AivmManifest['speakers'][number]['styles'][number]['voice_samples'][number],
@@ -764,14 +874,26 @@ async function downloadAivmFile() {
         return;
     }
 
-    // 「各ファイルから新規生成」の場合は Safetensors/ONNX ファイルを、
-    // 「既存の .aivm/.aivmx ファイルのメタデータを編集」の場合は AIVM/AIVMX ファイルを書き込み元として使用
-    const safetensorsFile = selectionTypeTabIndex.value === 0
-        ? selectedSafetensorsModel.value as File
-        : selectedAivm.value as File;
-    const onnxFile = selectionTypeTabIndex.value === 0
-        ? selectedOnnxModel.value as File
-        : selectedAivmx.value as File;
+    // モデルファイルの決定
+    // - 差し替えモードの場合：差し替え用のモデルファイルを使用
+    // - 「各ファイルから新規生成」の場合：選択された Safetensors / ONNX ファイルを使用
+    // - 「既存の .aivm/.aivmx ファイルのメタデータを編集」かつ差し替えなしの場合：選択された AIVM / AIVMX ファイルを使用
+    let safetensorsFile: File;
+    let onnxFile: File;
+
+    if (enableModelReplacement.value && replacementSafetensorsModel.value && replacementOnnxModel.value) {
+        // 差し替えモードの場合
+        safetensorsFile = replacementSafetensorsModel.value as File;
+        onnxFile = replacementOnnxModel.value as File;
+    } else if (selectionTypeTabIndex.value === 0) {
+        // 「各ファイルから新規生成」の場合
+        safetensorsFile = selectedSafetensorsModel.value as File;
+        onnxFile = selectedOnnxModel.value as File;
+    } else {
+        // 「既存の .aivm/.aivmx ファイルのメタデータを編集」かつ差し替えなしの場合
+        safetensorsFile = selectedAivm.value as File;
+        onnxFile = selectedAivmx.value as File;
+    }
 
     // AIVM と AIVMX の両方を生成
     Promise.all([
@@ -787,22 +909,6 @@ async function downloadAivmFile() {
         console.error(error);
     });
 }
-
-// 開発者モードの状態管理
-const developerMode = ref(false);
-const developerModeHoverCount = ref(0);
-
-// 開発者モードのホバー回数が10回を超えたら開発者モードを有効化できるようにする
-watch(developerModeHoverCount, (count) => {
-    if (count >= 10) {
-        // チェックボックスを表示
-        const checkbox = document.querySelector('.v-checkbox') as HTMLElement;
-        if (checkbox) {
-            checkbox.style.opacity = '0.1';
-            checkbox.style.cursor = 'pointer';
-        }
-    }
-});
 
 </script>
 <style lang="scss" scoped>
@@ -888,9 +994,12 @@ watch(developerModeHoverCount, (count) => {
     box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
 }
 
-// 開発者モードのチェックボックスのスタイル
-.v-checkbox {
+// 開発者モード用隠しチェックボックスのスタイル
+.developer-mode-checkbox.v-checkbox {
+    cursor: pointer;
+    user-select: none;
     transition: opacity 0.3s;
+    opacity: 0;
     &:hover {
         opacity: 0.2 !important;
     }
