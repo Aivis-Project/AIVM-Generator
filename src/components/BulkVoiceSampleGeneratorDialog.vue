@@ -1,7 +1,7 @@
 <template>
     <v-dialog :model-value="modelValue" persistent max-width="780px" @update:modelValue="!$event && cancelGeneration()">
         <v-card>
-            <v-card-title class="px-6 pt-5 pb-0 font-weight-bold">ボイスサンプルの一括生成</v-card-title>
+            <v-card-title class="px-6 pt-5 pb-0 font-weight-bold">ボイスサンプルを一括生成</v-card-title>
             <v-card-text class="px-6">
                 <p>指定されたテキストを使い、すべての話者・スタイルのボイスサンプルを AivisSpeech Engine API で一括生成します。</p>
                 <p class="mt-1" style="font-size: 13px;">あらかじめ、この PC で AivisSpeech Engine ({{ aivisSpeechApiBaseUrl }}) を起動しておく必要があります。</p>
