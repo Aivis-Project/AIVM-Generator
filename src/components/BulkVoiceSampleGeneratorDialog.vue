@@ -618,14 +618,7 @@ async function generateBulkVoiceSamples() {
                 const styleToUpdate = speakerToUpdate?.styles.find(s => s.local_id === targetStyle.styleLocalId);
 
                 if (styleToUpdate) {
-                    const existingSampleIndex = styleToUpdate.voice_samples.findIndex(vs => vs.transcript === text);
-                    if (existingSampleIndex !== -1) {
-                        styleToUpdate.voice_samples[existingSampleIndex].audio = m4aDataUrl;
-                    } else if (styleToUpdate.voice_samples.length < 10) { // 10サンプルに制限
-                        styleToUpdate.voice_samples.push({ audio: m4aDataUrl, transcript: text });
-                    } else {
-                        console.warn(`ボイスサンプル上限（10）に達した ${targetStyle.speakerName} - ${targetStyle.styleName}, "${text}" の追加をスキップ`);
-                    }
+                    styleToUpdate.voice_samples.push({ audio: m4aDataUrl, transcript: text });
                 } else {
                     console.error(`ローカルメタデータコピーで更新する話者/スタイルが見つかりません: 話者 ${targetStyle.originalSpeakerUuid}, スタイル ${targetStyle.styleLocalId}`);
                 }
