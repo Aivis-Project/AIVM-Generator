@@ -377,7 +377,7 @@
                                                         削除
                                                     </ActionButton>
                                                     <div class="aivm-voice-sample__drag-handle"
-                                                        v-ftooltip="'ドラッグ&ドロップでボイスサンプルの表示順序を変更できます。'">
+                                                        v-ftooltip="'ドラッグしてボイスサンプルの表示順序を変更できます。'">
                                                         <Icon icon="fa6-solid:grip-lines" height="20px" />
                                                     </div>
                                                 </div>
@@ -385,7 +385,7 @@
                                         </draggable>
                                     </div>
                                     <div class="aivm-speaker-style__drag-handle"
-                                        v-ftooltip="'ドラッグ&ドロップでスタイルの表示順序を変更できます。'">
+                                        v-ftooltip="'ドラッグしてスタイルの表示順序を変更できます。'">
                                         <Icon icon="fa6-solid:grip-lines" height="20px" />
                                     </div>
                                 </div>
