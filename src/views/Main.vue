@@ -1083,6 +1083,7 @@ function handleBulkGenerationCancel() {
     border-radius: 12px;
     background: rgb(var(--v-theme-background-lighten-1));
     box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
+    user-select: none;
     &:first-of-type {
         margin-top: 0;
     }
