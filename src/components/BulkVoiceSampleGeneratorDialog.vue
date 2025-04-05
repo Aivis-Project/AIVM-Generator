@@ -117,8 +117,7 @@ const props = defineProps({
     },
     currentMetadata: {
         type: Object as PropType<AivmMetadata | null>,
-        required: true,
-        validator: (value: AivmMetadata | null) => value === null || value instanceof Object,
+        default: null,
     },
     replacementOnnxModel: { // 差し替えモード用の AIVMX ファイル
         type: Object as PropType<File | null>,

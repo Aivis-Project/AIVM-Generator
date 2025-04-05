@@ -284,85 +284,113 @@
                         </div>
                     </div>
                     <div>
-                        <div class="aivm-speaker-style" v-for="(style, index) in speaker.styles" :key="style.local_id"
-                            :class="{ 'aivm-speaker-style--disabled': !isMetadataEditable }">
-                            <div class="aivm-speaker-style__icon" style="position: relative;">
-                                <img :src="style.icon ?? speaker.icon"
-                                    v-ftooltip="'クリックまたはドラッグ&ドロップでスタイルごとにアイコンを変更できます。未指定時は話者全体のアイコンが使われます。'"
-                                    @click="Utils.selectFile('image/*').then((file) => handleIconClick(file, style.icon)
-                                        .then((dataUrl) => style.icon = dataUrl))"
-                                    @dragover.prevent="event => {
-                                        if (event.target) (event.target as HTMLElement).style.border = '4px dashed rgb(var(--v-theme-secondary))'
-                                    }"
-                                    @dragleave="event => {
-                                        if (event.target) (event.target as HTMLElement).style.border = '';
-                                    }"
-                                    @drop.prevent="(event) => {
-                                        if (event.target) (event.target as HTMLElement).style.border = '';
-                                        const file = event.dataTransfer?.files[0];
-                                        if (file) handleIconClick(file, style.icon).then((dataUrl) => style.icon = dataUrl);
-                                    }" />
-                                <Icon class="aivm-speaker-style__icon-edit" icon="fluent:edit-16-filled" height="30px" />
-                            </div>
-                            <div class="d-flex align-center" style="height: 120px;">
-                                <div class="w-100">
-                                    <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
-                                        label="スタイルの名前 (最大 20 文字)" :disabled="!isMetadataEditable" v-model="style.name"
-                                        :rules="[v => !!v || 'スタイルの名前は必須です。']" />
-                                    <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
-                                        label="スタイルのローカル ID (読み取り専用)" :disabled="!isMetadataEditable" v-model="style.local_id" />
-                                </div>
-                            </div>
-                            <div>
-                                <div class="d-flex align-center">
-                                    <Heading3>
-                                        <div>
-                                            ボイスサンプル
-                                            <Description style="margin-top: 2px; font-size: 11px; line-height: 1.5;">
-                                                3つほどボイスサンプルを追加しておくことを推奨します。
-                                                <span v-if="index === 0">このノーマルスタイルのボイスサンプルはこの話者全体のボイスサンプルとしても使われます。</span>
-                                            </Description>
-                                        </div>
-                                        <template #action-button>
-                                            <ActionButton secondary icon="fluent:add-16-filled" font_size="13.5px"
-                                                @click="style.voice_samples.length < 10 && style.voice_samples.push({
-                                                    audio: DEFAULT_VOICE_SAMPLE_DATA_URL,
-                                                    transcript: '',
-                                                })">
-                                                追加
-                                            </ActionButton>
-                                        </template>
-                                    </Heading3>
-                                </div>
-                                <div class="mt-3 aivm-voice-sample" v-for="(voiceSample, sampleIndex) in style.voice_samples" :key="sampleIndex">
-                                    <div class="d-flex flex-column w-100" style="gap: 8px;">
-                                        <div class="d-flex align-center" style="position: relative;">
-                                            <v-overlay
-                                                :model-value="voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false"
-                                                contained
-                                                class="align-center justify-center"
-                                                persistent>
-                                                <v-progress-circular color="primary" indeterminate size="36"></v-progress-circular>
-                                            </v-overlay>
-                                            <audio class="w-100" style="height: 36px;" controls :src="voiceSample.audio"></audio>
-                                            <ActionButton icon="fluent:headphones-sound-wave-20-filled" class="ml-3" font_size="13.5px"
-                                                :disabled="!isFFmpegLoaded || (voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false)"
-                                                @click="selectAndEncodeVoiceSample(voiceSample, speaker.uuid, style.local_id, sampleIndex)">
-                                                {{ isFFmpegLoaded ? 'ファイル選択' : '準備中...' }}
-                                            </ActionButton>
-                                        </div>
-                                        <v-text-field variant="solo-filled" density="compact" hide-details
-                                            label="ボイスサンプルの書き起こし文 (必須)" v-model="voiceSample.transcript"
-                                            :rules="[v => !!v || '書き起こし文は必須です。']" />
+                        <draggable
+                            v-model="speaker.styles"
+                            item-key="local_id"
+                            :disabled="!isMetadataEditable"
+                            handle=".aivm-speaker-style__drag-handle"
+                            ghost-class="aivm-speaker-style--ghost"
+                        >
+                            <template #item="{element: style, index}">
+                                <div class="aivm-speaker-style" :key="style.local_id"
+                                    :class="{ 'aivm-speaker-style--disabled': !isMetadataEditable }">
+                                    <div class="aivm-speaker-style__icon" style="position: relative;">
+                                        <img :src="style.icon ?? speaker.icon"
+                                            v-ftooltip="'クリックまたはドラッグ&ドロップでスタイルごとにアイコンを変更できます。未指定時は話者全体のアイコンが使われます。'"
+                                            @click="Utils.selectFile('image/*').then((file) => handleIconClick(file, style.icon)
+                                                .then((dataUrl) => style.icon = dataUrl))"
+                                            @dragover.prevent="event => {
+                                                if (event.target) (event.target as HTMLElement).style.border = '4px dashed rgb(var(--v-theme-secondary))'
+                                            }"
+                                            @dragleave="event => {
+                                                if (event.target) (event.target as HTMLElement).style.border = '';
+                                            }"
+                                            @drop.prevent="(event) => {
+                                                if (event.target) (event.target as HTMLElement).style.border = '';
+                                                const file = event.dataTransfer?.files[0];
+                                                if (file) handleIconClick(file, style.icon).then((dataUrl) => style.icon = dataUrl);
+                                            }" />
+                                        <Icon class="aivm-speaker-style__icon-edit" icon="fluent:edit-16-filled" height="30px" />
                                     </div>
-                                    <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13.5px"
-                                        :disabled="(voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false)"
-                                        @click="style.voice_samples.splice(sampleIndex, 1)">
-                                        削除
-                                    </ActionButton>
+                                    <div class="d-flex align-center" style="height: 120px;">
+                                        <div class="w-100">
+                                            <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
+                                                label="スタイルの名前 (最大 20 文字)" :disabled="!isMetadataEditable" v-model="style.name"
+                                                :rules="[v => !!v || 'スタイルの名前は必須です。']" />
+                                            <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
+                                                label="スタイルのローカル ID (読み取り専用)" :disabled="!isMetadataEditable" v-model="style.local_id" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-center">
+                                            <Heading3>
+                                                <div>
+                                                    ボイスサンプル
+                                                    <Description style="margin-top: 2px; font-size: 11px; line-height: 1.5;">
+                                                        3つほどボイスサンプルを追加しておくことを推奨します。
+                                                        <span v-if="index === 0">このノーマルスタイルのボイスサンプルはこの話者全体のボイスサンプルとしても使われます。</span>
+                                                    </Description>
+                                                </div>
+                                                <template #action-button>
+                                                    <ActionButton secondary icon="fluent:add-16-filled" font_size="13.5px"
+                                                        @click="style.voice_samples.length < 10 && style.voice_samples.push({
+                                                            audio: DEFAULT_VOICE_SAMPLE_DATA_URL,
+                                                            transcript: '',
+                                                        })">
+                                                        追加
+                                                    </ActionButton>
+                                                </template>
+                                            </Heading3>
+                                        </div>
+                                        <draggable
+                                            v-model="style.voice_samples"
+                                            item-key="transcript"
+                                            :disabled="!isMetadataEditable"
+                                            handle=".aivm-voice-sample__drag-handle"
+                                            ghost-class="aivm-voice-sample--ghost"
+                                        >
+                                            <template #item="{element: voiceSample, index: sampleIndex}">
+                                                <div class="mt-3 aivm-voice-sample">
+                                                    <div class="d-flex flex-column w-100" style="gap: 8px;">
+                                                        <div class="d-flex align-center" style="position: relative;">
+                                                            <v-overlay
+                                                                :model-value="voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false"
+                                                                contained
+                                                                class="align-center justify-center"
+                                                                persistent>
+                                                                <v-progress-circular color="primary" indeterminate size="36"></v-progress-circular>
+                                                            </v-overlay>
+                                                            <audio class="w-100" style="height: 36px;" controls :src="voiceSample.audio"></audio>
+                                                            <ActionButton icon="fluent:headphones-sound-wave-20-filled" class="ml-3" font_size="13.5px"
+                                                                :disabled="!isFFmpegLoaded || (voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false)"
+                                                                @click="selectAndEncodeVoiceSample(voiceSample, speaker.uuid, style.local_id, sampleIndex)">
+                                                                {{ isFFmpegLoaded ? 'ファイル選択' : '準備中...' }}
+                                                            </ActionButton>
+                                                        </div>
+                                                        <v-text-field variant="solo-filled" density="compact" hide-details
+                                                            label="ボイスサンプルの書き起こし文 (必須)" v-model="voiceSample.transcript"
+                                                            :rules="[v => !!v || '書き起こし文は必須です。']" />
+                                                    </div>
+                                                    <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13.5px"
+                                                        :disabled="(voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false)"
+                                                        @click="style.voice_samples.splice(sampleIndex, 1)">
+                                                        削除
+                                                    </ActionButton>
+                                                    <div class="aivm-voice-sample__drag-handle"
+                                                        v-ftooltip="'ドラッグ&ドロップでボイスサンプルの表示順序を変更できます。'">
+                                                        <Icon icon="fa6-solid:grip-lines" height="20px" />
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </draggable>
+                                    </div>
+                                    <div class="aivm-speaker-style__drag-handle"
+                                        v-ftooltip="'ドラッグ&ドロップでスタイルの表示順序を変更できます。'">
+                                        <Icon icon="fa6-solid:grip-lines" height="20px" />
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            </template>
+                        </draggable>
                     </div>
                 </v-window-item>
             </v-window>
@@ -420,6 +448,7 @@ import { toBlobURL } from '@ffmpeg/util';
 import Aivmlib from 'aivmlib-web';
 import { AivmMetadata, AivmManifest, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from 'aivmlib-web';
 import { computed, onMounted, ref, watch, toRaw } from 'vue';
+import draggable from 'vuedraggable';
 import { VForm } from 'vuetify/components';
 import { VNumberInput } from 'vuetify/labs/components';
 
@@ -1045,7 +1074,8 @@ function handleBulkGenerationCancel() {
 
 .aivm-speaker-style {
     display: grid;
-    grid-template-columns: 120px 210px 1fr;
+    position: relative;
+    grid-template-columns: 120px 190px 1fr;
     gap: 20px;
     margin-top: 12px;
     padding: 12px 20px;
@@ -1059,6 +1089,11 @@ function handleBulkGenerationCancel() {
     &--disabled {
         opacity: 0.5;
         pointer-events: none;
+    }
+    &--ghost {
+        opacity: 0.5;
+        background: rgb(var(--v-theme-primary-lighten-3));
+        box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.3);
     }
 
     &__icon {
@@ -1106,9 +1141,32 @@ function handleBulkGenerationCancel() {
         // ref: https://b.0218.jp/202112010005.html
         clip-path: polygon(100% 50%, 100% 56.6%, 100% 59.3%, 100% 61.4%, 99.9% 63.2%, 99.9% 64.8%, 99.9% 66.2%, 99.8% 67.5%, 99.8% 68.7%, 99.7% 69.8%, 99.6% 70.8%, 99.5% 71.8%, 99.5% 72.8%, 99.4% 73.7%, 99.3% 74.6%, 99.1% 75.4%, 99% 76.3%, 98.9% 77%, 98.8% 77.8%, 98.6% 78.5%, 98.5% 79.2%, 98.3% 79.9%, 98.1% 80.6%, 98% 81.3%, 97.8% 81.9%, 97.6% 82.5%, 97.4% 83.1%, 97.2% 83.7%, 97% 84.3%, 96.8% 84.8%, 96.5% 85.4%, 96.3% 85.9%, 96% 86.4%, 95.8% 86.9%, 95.5% 87.4%, 95.3% 87.9%, 95% 88.3%, 94.7% 88.8%, 94.4% 89.2%, 94.1% 89.7%, 93.8% 90.1%, 93.4% 90.5%, 93.1% 90.9%, 92.8% 91.3%, 92.4% 91.7%, 92% 92%, 91.7% 92.4%, 91.3% 92.8%, 90.9% 93.1%, 90.5% 93.4%, 90.1% 93.8%, 89.7% 94.1%, 89.2% 94.4%, 88.8% 94.7%, 88.3% 95%, 87.9% 95.3%, 87.4% 95.5%, 86.9% 95.8%, 86.4% 96%, 85.9% 96.3%, 85.4% 96.5%, 84.8% 96.8%, 84.3% 97%, 83.7% 97.2%, 83.1% 97.4%, 82.5% 97.6%, 81.9% 97.8%, 81.3% 98%, 80.6% 98.1%, 79.9% 98.3%, 79.2% 98.5%, 78.5% 98.6%, 77.8% 98.8%, 77% 98.9%, 76.3% 99%, 75.4% 99.1%, 74.6% 99.3%, 73.7% 99.4%, 72.8% 99.5%, 71.8% 99.5%, 70.8% 99.6%, 69.8% 99.7%, 68.7% 99.8%, 67.5% 99.8%, 66.2% 99.9%, 64.8% 99.9%, 63.2% 99.9%, 61.4% 100%, 59.3% 100%, 56.6% 100%, 50% 100%, 43.4% 100%, 40.7% 100%, 38.6% 100%, 36.8% 99.9%, 35.2% 99.9%, 33.8% 99.9%, 32.5% 99.8%, 31.3% 99.8%, 30.2% 99.7%, 29.2% 99.6%, 28.2% 99.5%, 27.2% 99.5%, 26.3% 99.4%, 25.4% 99.3%, 24.6% 99.1%, 23.7% 99%, 23% 98.9%, 22.2% 98.8%, 21.5% 98.6%, 20.8% 98.5%, 20.1% 98.3%, 19.4% 98.1%, 18.7% 98%, 18.1% 97.8%, 17.5% 97.6%, 16.9% 97.4%, 16.3% 97.2%, 15.7% 97%, 15.2% 96.8%, 14.6% 96.5%, 14.1% 96.3%, 13.6% 96%, 13.1% 95.8%, 12.6% 95.5%, 12.1% 95.3%, 11.7% 95%, 11.2% 94.7%, 10.8% 94.4%, 10.3% 94.1%, 9.9% 93.8%, 9.5% 93.4%, 9.1% 93.1%, 8.7% 92.8%, 8.3% 92.4%, 8% 92%, 7.6% 91.7%, 7.2% 91.3%, 6.9% 90.9%, 6.6% 90.5%, 6.2% 90.1%, 5.9% 89.7%, 5.6% 89.2%, 5.3% 88.8%, 5% 88.3%, 4.7% 87.9%, 4.5% 87.4%, 4.2% 86.9%, 4% 86.4%, 3.7% 85.9%, 3.5% 85.4%, 3.2% 84.8%, 3% 84.3%, 2.8% 83.7%, 2.6% 83.1%, 2.4% 82.5%, 2.2% 81.9%, 2% 81.3%, 1.9% 80.6%, 1.7% 79.9%, 1.5% 79.2%, 1.4% 78.5%, 1.2% 77.8%, 1.1% 77%, 1% 76.3%, 0.9% 75.4%, 0.7% 74.6%, 0.6% 73.7%, 0.5% 72.8%, 0.5% 71.8%, 0.4% 70.8%, 0.3% 69.8%, 0.2% 68.7%, 0.2% 67.5%, 0.1% 66.2%, 0.1% 64.8%, 0.1% 63.2%, 0% 61.4%, 0% 59.3%, 0% 56.6%, 0% 50%, 0% 43.4%, 0% 40.7%, 0% 38.6%, 0.1% 36.8%, 0.1% 35.2%, 0.1% 33.8%, 0.2% 32.5%, 0.2% 31.3%, 0.3% 30.2%, 0.4% 29.2%, 0.5% 28.2%, 0.5% 27.2%, 0.6% 26.3%, 0.7% 25.4%, 0.9% 24.6%, 1% 23.7%, 1.1% 23%, 1.2% 22.2%, 1.4% 21.5%, 1.5% 20.8%, 1.7% 20.1%, 1.9% 19.4%, 2% 18.7%, 2.2% 18.1%, 2.4% 17.5%, 2.6% 16.9%, 2.8% 16.3%, 3% 15.7%, 3.2% 15.2%, 3.5% 14.6%, 3.7% 14.1%, 4% 13.6%, 4.2% 13.1%, 4.5% 12.6%, 4.7% 12.1%, 5% 11.7%, 5.3% 11.2%, 5.6% 10.8%, 5.9% 10.3%, 6.2% 9.9%, 6.6% 9.5%, 6.9% 9.1%, 7.2% 8.7%, 7.6% 8.3%, 8% 8%, 8.3% 7.6%, 8.7% 7.2%, 9.1% 6.9%, 9.5% 6.6%, 9.9% 6.2%, 10.3% 5.9%, 10.8% 5.6%, 11.2% 5.3%, 11.7% 5%, 12.1% 4.7%, 12.6% 4.5%, 13.1% 4.2%, 13.6% 4%, 14.1% 3.7%, 14.6% 3.5%, 15.2% 3.2%, 15.7% 3%, 16.3% 2.8%, 16.9% 2.6%, 17.5% 2.4%, 18.1% 2.2%, 18.7% 2%, 19.4% 1.9%, 20.1% 1.7%, 20.8% 1.5%, 21.5% 1.4%, 22.2% 1.2%, 23% 1.1%, 23.7% 1%, 24.6% 0.9%, 25.4% 0.7%, 26.3% 0.6%, 27.2% 0.5%, 28.2% 0.5%, 29.2% 0.4%, 30.2% 0.3%, 31.3% 0.2%, 32.5% 0.2%, 33.8% 0.1%, 35.2% 0.1%, 36.8% 0.1%, 38.6% 0%, 40.7% 0%, 43.4% 0%, 50% 0%, 56.6% 0%, 59.3% 0%, 61.4% 0%, 63.2% 0.1%, 64.8% 0.1%, 66.2% 0.1%, 67.5% 0.2%, 68.7% 0.2%, 69.8% 0.3%, 70.8% 0.4%, 71.8% 0.5%, 72.8% 0.5%, 73.7% 0.6%, 74.6% 0.7%, 75.4% 0.9%, 76.3% 1%, 77% 1.1%, 77.8% 1.2%, 78.5% 1.4%, 79.2% 1.5%, 79.9% 1.7%, 80.6% 1.9%, 81.3% 2%, 81.9% 2.2%, 82.5% 2.4%, 83.1% 2.6%, 83.7% 2.8%, 84.3% 3%, 84.8% 3.2%, 85.4% 3.5%, 85.9% 3.7%, 86.4% 4%, 86.9% 4.2%, 87.4% 4.5%, 87.9% 4.7%, 88.3% 5%, 88.8% 5.3%, 89.2% 5.6%, 89.7% 5.9%, 90.1% 6.2%, 90.5% 6.6%, 90.9% 6.9%, 91.3% 7.2%, 91.7% 7.6%, 92% 8%, 92.4% 8.3%, 92.8% 8.7%, 93.1% 9.1%, 93.4% 9.5%, 93.8% 9.9%, 94.1% 10.3%, 94.4% 10.8%, 94.7% 11.2%, 95% 11.7%, 95.3% 12.1%, 95.5% 12.6%, 95.8% 13.1%, 96% 13.6%, 96.3% 14.1%, 96.5% 14.6%, 96.8% 15.2%, 97% 15.7%, 97.2% 16.3%, 97.4% 16.9%, 97.6% 17.5%, 97.8% 18.1%, 98% 18.7%, 98.1% 19.4%, 98.3% 20.1%, 98.5% 20.8%, 98.6% 21.5%, 98.8% 22.2%, 98.9% 23%, 99% 23.7%, 99.1% 24.6%, 99.3% 25.4%, 99.4% 26.3%, 99.5% 27.2%, 99.5% 28.2%, 99.6% 29.2%, 99.7% 30.2%, 99.8% 31.3%, 99.8% 32.5%, 99.9% 33.8%, 99.9% 35.2%, 99.9% 36.8%, 100% 38.6%, 100% 40.7%, 100% 43.4%);
     }
+
+    &__drag-handle {
+        position: absolute;
+        bottom: 4px;
+        left: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 2px;
+        border-radius: 4px;
+        color: rgb(var(--v-theme-text-darken-2));
+        transition: background-color 0.2s ease;
+        cursor: grab;
+        &:hover {
+            background: rgba(0, 0, 0, 0.17);
+        }
+        &:active {
+            cursor: grabbing;
+        }
+    }
 }
 
 .aivm-voice-sample {
+    position: relative;
     display: flex;
     align-items: center;
     padding: 8px;
@@ -1116,6 +1174,34 @@ function handleBulkGenerationCancel() {
     border-radius: 12px;
     background: rgb(var(--v-theme-background-lighten-2));
     box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.25);
+
+    &--ghost {
+        opacity: 0.5;
+        background: rgb(var(--v-theme-primary-lighten-3));
+        box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.3);
+    }
+
+    &__drag-handle {
+        position: absolute;
+        bottom: 6px;
+        right: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 2px;
+        border-radius: 4px;
+        color: rgb(var(--v-theme-text-darken-1));
+        transition: background-color 0.2s ease;
+        cursor: grab;
+        &:hover {
+            background: rgba(0, 0, 0, 0.17);
+        }
+        &:active {
+            cursor: grabbing;
+        }
+    }
 }
 
 // 開発者モード用隠しチェックボックスのスタイル
