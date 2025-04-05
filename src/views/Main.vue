@@ -552,54 +552,59 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
 
     // 全てのファイルが選択されている場合
     if (isAllFilesSelected.value) {
-        if (selectionTypeTabIndex.value === 0) {
-            // 「各ファイルから新規生成」の場合
-            Aivmlib.generateAivmMetadata(
-                selectedArchitecture.value,
-                selectedHyperParameters.value as File,
-                selectedStyleVectors.value as File | null,
-            ).then((metadata) => {
-                // モデルファイル名からエポック数とステップ数を抽出
-                const modelFileName = (selectedSafetensorsModel.value as File).name;
-                const epochMatch = modelFileName.match(/e(\d{2,})/);  // "e" の後ろに2桁以上の数字
-                const stepMatch = modelFileName.match(/s(\d{2,})/);  // "s" の後ろに2桁以上の数字
-                // エポック数を設定
-                if (epochMatch) {
-                    metadata.manifest.training_epochs = parseInt(epochMatch[1], 10);
-                }
-                // ステップ数を設定
-                if (stepMatch) {
-                    metadata.manifest.training_steps = parseInt(stepMatch[1], 10);
-                }
-                currentAivmMetadata.value = metadata;
-            }).catch((error) => {
-                Message.error(error.message);
-                console.error(error);
-            });
-        } else {
-            // 「既存の .aivm/.aivmx ファイルのメタデータを編集」の場合
-            // AIVM と AIVMX の両方からメタデータを読み込み、一致することを確認
-            Promise.all([
-                Aivmlib.readAivmMetadata(selectedAivm.value as File),
-                Aivmlib.readAivmxMetadata(selectedAivmx.value as File),
-            ]).then(([AivmMetadataInAivm, AivmMetadataInAivmx]) => {
-                console.log('AIVM metadata (in AIVM):', AivmMetadataInAivm);
-                console.log('AIVM metadata (in AIVMX):', AivmMetadataInAivmx);
-                // メタデータの一致を確認（UUID で比較）
-                if (AivmMetadataInAivm.manifest.uuid !== AivmMetadataInAivmx.manifest.uuid) {
-                    Message.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
-                    console.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
-                    return;
-                }
-                // AIVMX 側のメタデータを使う
-                currentAivmMetadata.value = AivmMetadataInAivmx;
-            }).catch((error) => {
-                Message.error(error.message);
-                console.error(error);
-            });
-        }
+        loadAivmMetadataFromFiles();
     }
 });
+
+// 共通のメタデータ読み込み処理
+function loadAivmMetadataFromFiles() {
+    if (selectionTypeTabIndex.value === 0) {
+        // 「各ファイルから新規生成」の場合
+        Aivmlib.generateAivmMetadata(
+            selectedArchitecture.value,
+            selectedHyperParameters.value as File,
+            selectedStyleVectors.value as File | null,
+        ).then((metadata) => {
+            // モデルファイル名からエポック数とステップ数を抽出
+            const modelFileName = (selectedSafetensorsModel.value as File).name;
+            const epochMatch = modelFileName.match(/e(\d{2,})/);  // "e" の後ろに2桁以上の数字
+            const stepMatch = modelFileName.match(/s(\d{2,})/);  // "s" の後ろに2桁以上の数字
+            // エポック数を設定
+            if (epochMatch) {
+                metadata.manifest.training_epochs = parseInt(epochMatch[1], 10);
+            }
+            // ステップ数を設定
+            if (stepMatch) {
+                metadata.manifest.training_steps = parseInt(stepMatch[1], 10);
+            }
+            currentAivmMetadata.value = metadata;
+        }).catch((error) => {
+            Message.error(error.message);
+            console.error(error);
+        });
+    } else {
+        // 「既存の .aivm/.aivmx ファイルのメタデータを編集」の場合
+        // AIVM と AIVMX の両方からメタデータを読み込み、一致することを確認
+        Promise.all([
+            Aivmlib.readAivmMetadata(selectedAivm.value as File),
+            Aivmlib.readAivmxMetadata(selectedAivmx.value as File),
+        ]).then(([AivmMetadataInAivm, AivmMetadataInAivmx]) => {
+            console.log('AIVM metadata (in AIVM):', AivmMetadataInAivm);
+            console.log('AIVM metadata (in AIVMX):', AivmMetadataInAivmx);
+            // メタデータの一致を確認（UUID で比較）
+            if (AivmMetadataInAivm.manifest.uuid !== AivmMetadataInAivmx.manifest.uuid) {
+                Message.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
+                console.error('選択された AIVM ファイルと AIVMX ファイルのメタデータ (UUID) が一致しません。');
+                return;
+            }
+            // AIVMX 側のメタデータを使う
+            currentAivmMetadata.value = AivmMetadataInAivmx;
+        }).catch((error) => {
+            Message.error(error.message);
+            console.error(error);
+        });
+    }
+}
 
 // モデル差し替え用の状態
 const enableModelReplacement = ref(false);
@@ -676,12 +681,18 @@ watch([replacementSafetensorsModel, replacementOnnxModel, replacementHyperParame
 // 差し替えモードが切り替わった時の処理
 watch(enableModelReplacement, (newValue) => {
     if (!newValue) {
-        // 差し替えモードがオフになったら選択を解除
+        // 選択を解除
         replacementSafetensorsModel.value = undefined;
         replacementOnnxModel.value = undefined;
         replacementHyperParameters.value = undefined;
         replacementStyleVectors.value = undefined;
         modelReplacementWarnings.value = [];
+        Message.info('モデル差し替えモードを無効にしました。元のモデルデータの状態に戻します。');
+
+        // メタデータを元に戻す
+        if (isAllFilesSelected.value) {
+            loadAivmMetadataFromFiles();
+        }
     } else {
         // 差し替えモードがオンになったらガイダンスを表示
         Message.info('モデル差し替えモードを有効にしました。\n差し替え先のモデルデータと関連ファイルすべてを選択してください。');
