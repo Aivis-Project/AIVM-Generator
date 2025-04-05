@@ -328,6 +328,8 @@ async function synthesizeSpeech(baseUrl: string, text: string, styleId: number):
             throw new Error(`/audio_query API の実行に失敗しました。(${errorText}) スタイル: ${styleId}`);
         }
         const audioQuery = await queryResponse.json();
+        // intonationScale に関しては、各話者でスタイルを少し強めに出すために 1.3 に設定
+        audioQuery.intonationScale = 1.3;
 
         // 2. synthesis
         const synthesisResponse = await fetch(`${baseUrl}/synthesis?speaker=${styleId}`, {
