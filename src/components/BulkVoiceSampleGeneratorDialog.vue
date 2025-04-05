@@ -35,6 +35,7 @@
                         max="2"
                         step="0.05"
                         :disabled="isGeneratingBulkVoiceSamples"
+                        color="primary"
                         density="compact"
                         show-ticks="always"
                         thumb-label
@@ -49,6 +50,7 @@
                         max="2"
                         step="0.05"
                         :disabled="isGeneratingBulkVoiceSamples"
+                        color="primary"
                         density="compact"
                         show-ticks="always"
                         thumb-label
