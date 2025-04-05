@@ -102,7 +102,7 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import Aivmlib, { AivmMetadata } from 'aivmlib-web';
 import md5 from 'crypto-js/md5';
 import * as uuid from 'uuid';
-import { ref, computed, watch, PropType, defineProps, defineEmits, toRaw } from 'vue';
+import { ref, computed, watch, PropType, defineProps, defineEmits } from 'vue';
 
 import Message from '@/message';
 import Utils from '@/utils';
@@ -416,7 +416,10 @@ async function generateBulkVoiceSamples() {
     if (!props.currentMetadata || !props.isFFmpegLoaded) return;
 
     // ローカルで変更するためのディープコピーを作成し、完全成功時のみ結果を送信
-    const localMetadataCopy = structuredClone(toRaw(props.currentMetadata));
+    // vuedraggable で順序を並び替えた場合、toRawDeep で再帰的に toRaw しないと structuredClone でコピーできない
+    const localMetadataCopy = structuredClone(Utils.toRawDeep(props.currentMetadata));
+    console.log(props.currentMetadata);
+    console.log(localMetadataCopy);
 
     bulkGenerationAbortController = new AbortController();
     isGeneratingBulkVoiceSamples.value = true;

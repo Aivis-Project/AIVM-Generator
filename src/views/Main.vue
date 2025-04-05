@@ -447,7 +447,7 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
 import Aivmlib from 'aivmlib-web';
 import { AivmMetadata, AivmManifest, DefaultAivmManifest, DEFAULT_ICON_DATA_URL } from 'aivmlib-web';
-import { computed, onMounted, ref, watch, toRaw } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import { VForm } from 'vuetify/components';
 import { VNumberInput } from 'vuetify/labs/components';
@@ -643,9 +643,9 @@ watch([replacementSafetensorsModel, replacementOnnxModel, replacementHyperParame
             // 既存のメタデータを新しいハイパーパラメータとスタイルベクトルで更新
             const { updated_metadata, warnings } = await Aivmlib.updateAivmMetadata(
                 // updateAivmMetadata() 内部で structuredClone() が使われている関係で、
-                // Proxy に包まれたオブジェクトではなく、生のオブジェクトを明示的に渡す必要がある
+                // Proxy に包まれたオブジェクトではなく、再帰的に toRaw() した純粋なオブジェクトを渡す必要がある
                 // ref: https://stackoverflow.com/questions/72632173/unable-to-use-structuredclone-on-value-of-ref-variable
-                toRaw(currentAivmMetadata.value),
+                Utils.toRawDeep(currentAivmMetadata.value),
                 replacementHyperParameters.value as File,
                 replacementStyleVectors.value as File,
             );

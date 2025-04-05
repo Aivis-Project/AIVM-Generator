@@ -1,5 +1,6 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
+import { toRaw } from 'vue';
 
 
 /**
@@ -217,5 +218,38 @@ export default class Utils {
      */
     static async sleep(seconds: number): Promise<number> {
         return await new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    }
+
+
+    /**
+     * オブジェクトを再帰的に toRaw() して返す
+     * ref: https://stackoverflow.com/a/77022014/17124142
+     * @param observed オブジェクト
+     * @returns 再帰的に toRaw() したオブジェクト
+     */
+    static toRawDeep<T>(observed: T): T {
+        const val = toRaw(observed);
+
+        // null チェック
+        if (val === null) return null as T;
+
+        // TypedArray (Uint8Array など) のチェック
+        if (ArrayBuffer.isView(val) && !(val instanceof DataView)) {
+            // TypedArray はそのまま返す（コピーしない）
+            return val;
+        }
+
+        // 配列の処理
+        if (Array.isArray(val)) {
+            return val.map(Utils.toRawDeep) as T;
+        }
+
+        // 通常のオブジェクトの処理
+        if (typeof val === 'object') {
+            const entries = Object.entries(val).map(([key, val]) => [key, Utils.toRawDeep(val)]);
+            return Object.fromEntries(entries);
+        }
+
+        return val;
     }
 }
