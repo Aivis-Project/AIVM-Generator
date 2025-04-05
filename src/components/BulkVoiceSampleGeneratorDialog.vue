@@ -283,6 +283,22 @@ async function uninstallTemporaryAivmxFile(baseUrl: string, uuid: string): Promi
             cleanupController.abort();
         }, 30 * 1000); // 30秒でタイムアウト
 
+        // 1. 最初にモデルをアンロード
+        console.log(`一時モデル ${uuid} をアンロード中...`);
+        const unloadResponse = await fetch(`${baseUrl}/aivm_models/${uuid}/unload`, {
+            method: 'POST',
+            signal: cleanupController.signal,
+            mode: 'cors',
+        });
+
+        if (!unloadResponse.ok && unloadResponse.status !== 404) {
+            console.warn(`一時モデル ${uuid} のアンロードに失敗しました: HTTP ${unloadResponse.status}`);
+            // アンロード失敗でもアンインストールは試行
+        } else if (unloadResponse.ok) {
+            console.log(`一時モデル ${uuid} のアンロードに成功しました。`);
+        }
+
+        // 2. アンロード後にアンインストール
         const response = await fetch(`${baseUrl}/aivm_models/${uuid}/uninstall`, {
             method: 'DELETE',
             signal: cleanupController.signal,
