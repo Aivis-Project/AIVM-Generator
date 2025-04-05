@@ -1204,7 +1204,7 @@ function handleBulkGenerationCancel() {
         height: 20px;
         padding: 2px;
         border-radius: 4px;
-        color: rgb(var(--v-theme-text-darken-1));
+        color: rgb(var(--v-theme-text-darken-2));
         transition: background-color 0.2s ease;
         cursor: grab;
         &:hover {
