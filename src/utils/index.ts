@@ -111,13 +111,13 @@ export default class Utils {
         file: File,
         ffmpeg: FFmpeg,
         options: {
-            bitrate?: string, // ビットレート（例: '192k'）
+            bitrate?: string, // ビットレート（例: '256k'）
             onProgress?: (progress: number) => void, // 進捗コールバック
         } = {},
     ): Promise<string> {
 
         // オプションのデフォルト値
-        const bitrate = options.bitrate || '192k';
+        const bitrate = options.bitrate || '256k';
 
         // ファイル名を生成（元の拡張子を維持）
         const inputFilename = `input.${file.name.split('.').pop() || 'bin'}`; // input.wav, input.mp3 など
@@ -132,7 +132,9 @@ export default class Utils {
                 '-i', inputFilename,
                 '-vn',
                 '-c:a', 'aac',
+                '-aac_coder', 'twoloop',
                 '-b:a', bitrate,
+                '-ar', '44100',
                 outputFilename
             ]);
 

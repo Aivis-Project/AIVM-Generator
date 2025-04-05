@@ -857,9 +857,7 @@ const detectAndConvertWavSamples = async () => {
                 const wavFile = new File([wavBlob], `sample_${index}.wav`, { type: 'audio/wav' });
 
                 // 音声ファイルを M4A にエンコード
-                const dataUrl = await Utils.encodeAudioToM4ADataURL(wavFile, ffmpegInstance, {
-                    bitrate: '192k',
-                });
+                const dataUrl = await Utils.encodeAudioToM4ADataURL(wavFile, ffmpegInstance);
 
                 // 変換後のサイズを計算
                 const newSize = dataUrl.length;
@@ -908,9 +906,7 @@ const selectAndEncodeVoiceSample = async (
         console.log(`Starting encoding for voice sample: ${sampleKey}`);
 
         // M4A にエンコード
-        const dataUrl = await Utils.encodeAudioToM4ADataURL(file, ffmpegInstance, {
-            bitrate: '192k',
-        });
+        const dataUrl = await Utils.encodeAudioToM4ADataURL(file, ffmpegInstance);
 
         // Data URL をボイスサンプルに設定
         voiceSample.audio = dataUrl;

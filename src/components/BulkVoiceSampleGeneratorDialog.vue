@@ -86,6 +86,7 @@ const props = defineProps({
     currentMetadata: {
         type: Object as PropType<AivmMetadata | null>,
         required: true,
+        validator: (value: AivmMetadata | null) => value === null || value instanceof Object,
     },
     replacementOnnxModel: { // 差し替えモード用の AIVMX ファイル
         type: Object as PropType<File | null>,
@@ -554,7 +555,7 @@ async function generateBulkVoiceSamples() {
                 // M4A にエンコード
                 bulkGenerationStatusMessage.value = `[${bulkGenerationCurrentStep.value}/${bulkGenerationTotalSteps.value}] 話者: ${targetStyle.speakerName}, スタイル: ${targetStyle.styleName} (ID: ${globalStyleId}) M4A エンコード中...`;
                 const wavFile = new File([wavBlob], 'temp.wav', { type: 'audio/wav' });
-                const m4aDataUrl = await Utils.encodeAudioToM4ADataURL(wavFile, props.ffmpegInstance, { bitrate: '192k' });
+                const m4aDataUrl = await Utils.encodeAudioToM4ADataURL(wavFile, props.ffmpegInstance);
 
                 // --- ローカルメタデータコピーを更新 ---
                 // *元の* UUID とローカル ID を使って、ローカルコピー内の正しい話者とスタイルを見つける
