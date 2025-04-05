@@ -24,6 +24,38 @@
                     hide-details
                     :readonly="isGeneratingBulkVoiceSamples"
                 ></v-text-field>
+
+                <div class="d-flex flex-column mt-5">
+                    <div class="mb-1">
+                        <p class="mb-0">スタイルの強さ（適切に発声できる最適値がモデルによって異なるため、適宜調整が必要）</p>
+                    </div>
+                    <v-slider
+                        v-model="intonationScale"
+                        min="0"
+                        max="2"
+                        step="0.1"
+                        :disabled="isGeneratingBulkVoiceSamples"
+                        density="compact"
+                        show-ticks="always"
+                        thumb-label
+                        hide-details
+                    ></v-slider>
+                    <div class="mb-1">
+                        <p class="mb-0">テンポの緩急（値が大きいほど、より早口で生っぽい抑揚がついた声になる）</p>
+                    </div>
+                    <v-slider
+                        v-model="tempoDynamicsScale"
+                        min="0"
+                        max="2"
+                        step="0.1"
+                        :disabled="isGeneratingBulkVoiceSamples"
+                        density="compact"
+                        show-ticks="always"
+                        thumb-label
+                        hide-details
+                    ></v-slider>
+                </div>
+
                 <v-progress-linear
                     v-if="isGeneratingBulkVoiceSamples"
                     class="mt-4"
@@ -116,6 +148,8 @@ const emit = defineEmits(['complete', 'cancel']);
 const bulkGenerationTextsInput = ref('');
 const bulkGenerationTexts = computed(() => bulkGenerationTextsInput.value.split('\n').map(t => t.trim()).filter(t => t !== ''));
 const aivisSpeechApiBaseUrl = ref('http://localhost:10101');
+const intonationScale = ref(1.3); // デフォルト値、各話者でスタイルを少し強めに出すために 1.3 に設定
+const tempoDynamicsScale = ref(1.0); // デフォルト値
 const isGeneratingBulkVoiceSamples = ref(false);
 const bulkGenerationProgress = ref(0);
 const bulkGenerationCurrentStep = ref(0);
@@ -134,6 +168,8 @@ watch(() => props.modelValue, (newValue) => {
             'やったあー！テストで満点取れた〜！私とっても嬉しいな！　この漫画めっちゃ笑える〜！見てよこれ！\n' +
             'ごめんね、今ちょっと風邪気味なんだよね…。それでもよければ会いたいけど、どう？　………そっか…。コロナ流行ってるもんね。じゃまた今度にしよっか。元気になったらぜひご飯でも！'
         );
+        intonationScale.value = 1.3; // リセット
+        tempoDynamicsScale.value = 1.0; // リセット
         bulkGenerationProgress.value = 0;
         bulkGenerationCurrentStep.value = 0;
         bulkGenerationTotalSteps.value = 0;
@@ -344,8 +380,9 @@ async function synthesizeSpeech(baseUrl: string, text: string, styleId: number):
             throw new Error(`/audio_query API の実行に失敗しました。(${errorText}) スタイル: ${styleId}`);
         }
         const audioQuery = await queryResponse.json();
-        // intonationScale に関しては、各話者でスタイルを少し強めに出すために 1.3 に設定
-        audioQuery.intonationScale = 1.3;
+        // フォームで設定された値を使用
+        audioQuery.intonationScale = intonationScale.value;
+        audioQuery.tempoDynamicsScale = tempoDynamicsScale.value;
 
         // 2. synthesis
         const synthesisResponse = await fetch(`${baseUrl}/synthesis?speaker=${styleId}`, {
