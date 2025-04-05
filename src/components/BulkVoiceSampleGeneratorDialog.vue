@@ -33,7 +33,7 @@
                         v-model="intonationScale"
                         min="0"
                         max="2"
-                        step="0.1"
+                        step="0.05"
                         :disabled="isGeneratingBulkVoiceSamples"
                         density="compact"
                         show-ticks="always"
@@ -47,7 +47,7 @@
                         v-model="tempoDynamicsScale"
                         min="0"
                         max="2"
-                        step="0.1"
+                        step="0.05"
                         :disabled="isGeneratingBulkVoiceSamples"
                         density="compact"
                         show-ticks="always"
@@ -164,7 +164,7 @@ watch(() => props.modelValue, (newValue) => {
     if (newValue) {
         // ダイアログが開いたときに状態をリセット
         bulkGenerationTextsInput.value = ( // デフォルトテキストをリセット
-            'おはようございます！現在時刻は7時30分です。今日の東京の気温は18度で、天気は晴れです。10時からミーティング、午後3時に歯医者の予約があります。今日も素敵な一日になりますように。\n' +
+            'おはようございます！現在時刻は7時30分です。今日の東京の気温は18度で、天気は雨です。10時からミーティング、午後3時に歯医者の予約があります。今日も素敵な一日になりますように。\n' +
             'やったあー！テストで満点取れた〜！私とっても嬉しいな！　この漫画めっちゃ笑える〜！見てよこれ！\n' +
             'ごめんね、今ちょっと風邪気味なんだよね…。それでもよければ会いたいけど、どう？　………そっか…。コロナ流行ってるもんね。じゃまた今度にしよっか。元気になったらぜひご飯でも！'
         );
