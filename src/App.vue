@@ -174,7 +174,7 @@ main {
 
 // スマホ縦画面でのダイヤログの表示幅を広げる
 .v-dialog .v-overlay__content {
-    @include smartphone-vertical {
+    @include smartphone {
         margin: 24px 6px !important;
         width: calc(100% - 12px) !important;
         max-width: calc(100% - 12px) !important;
@@ -259,7 +259,7 @@ main {
 // スマホ縦画面 (幅が 600px 以下の端末) のみ表示する <br> タグ
 .br-smartphone-only {
     display: none;
-    @include smartphone-vertical {
+    @include smartphone {
         display: inline;
     }
 }

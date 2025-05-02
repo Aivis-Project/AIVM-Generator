@@ -1,0 +1,63 @@
+
+// ***** メディアクエリの定義 *****
+
+// 600px, 960px などの基準値は Vuetify 3 のブレークポイント定義に合わせている
+// ref: https://vuetifyjs.com/en/styles/display/
+
+// デスクトップ - PC画面 (961px 以上)
+@mixin desktop {
+    @media (min-width: 961px) {
+        @content;
+    }
+}
+
+// デスクトップとタブレット (601px 以上の全デバイス)
+@mixin desktop-tablet {
+    @media (min-width: 601px) {
+        @content;
+    }
+}
+
+// タブレット - 中間サイズ (601px〜960px)
+@mixin tablet {
+    @media (min-width: 601px) and (max-width: 960px) {
+        @content;
+    }
+}
+
+// タブレットとスマートフォン (960px 以下の全デバイス)
+@mixin tablet-smartphone {
+    @media (max-width: 960px) {
+        @content;
+    }
+}
+
+// スマートフォン (幅 600px 以下)
+@mixin smartphone {
+    @media (max-width: 600px) {
+        @content;
+    }
+}
+
+// 小さいスマートフォン (380px 以下)
+@mixin smartphone-small {
+    @media (max-width: 380px) {
+        @content;
+    }
+}
+
+// ***** 便利なミックスインの定義 *****
+
+// PC では :hover 、タッチデバイスでは :active を適用する
+@mixin hover-or-active {
+    @media (hover: hover) {
+        &:hover {
+            @content;
+        }
+    }
+    @media (hover: none) {
+        &:active {
+            @content;
+        }
+    }
+}

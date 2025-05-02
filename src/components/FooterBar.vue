@@ -6,21 +6,21 @@
                 <!-- Social Links -->
                 <div class="footer__social-links">
                     <a v-ripple href="https://x.com/aivis_project" target="_blank" class="footer__button">
-                        <Icon icon="mdi:twitter" height="24px" />
+                        <Icon icon="mdi:twitter" width="21px" height="21px" />
                         Twitter (X)
                     </a>
                     <a v-ripple href="https://github.com/Aivis-Project" target="_blank" class="footer__button">
-                        <Icon icon="mdi:github" height="24px" />
+                        <Icon icon="mdi:github" width="21px" height="21px" />
                         GitHub
                     </a>
-                    <a v-ripple href="https://note.com/jpchain/" target="_blank" class="footer__button">
-                        <Icon icon="material-symbols:note-outline" height="24px" />
+                    <a v-ripple href="https://note.com/aivis_project/" target="_blank" class="footer__button">
+                        <Icon icon="material-symbols:note-outline" width="21px" height="21px" />
                         公式 note
                     </a>
                 </div>
                 <!-- Contact Button -->
                 <a v-ripple href="https://forms.gle/sTsZGfX7aR8ox8Rs7" target="_blank" class="footer__button footer__button--dark">
-                    <Icon icon="majesticons:mail-line" height="24px" />
+                    <Icon icon="majesticons:mail-line" width="21px" height="21px" />
                     導入のご相談・資料請求
                 </a>
             </div>
@@ -67,6 +67,11 @@
         padding-right: 20px;
         padding-top: 24px;
         padding-bottom: 28px;
+
+        @include tablet-smartphone {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
     }
 
     &__top {
@@ -74,18 +79,29 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 24px;
+
+        @include tablet-smartphone {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
     }
 
     &__social-links {
         display: flex;
         gap: 16px;
+
+        @include tablet-smartphone {
+            flex-wrap: wrap;
+            gap: 12px;
+        }
     }
 
     &__button {
         display: flex;
         align-items: center;
-        gap: 8px;
         height: 46px;
+        gap: 8px;
         padding: 0px 16px;
         border-radius: 8px;
         font-size: 15px;
@@ -98,6 +114,19 @@
 
         &:hover {
             background-color: rgb(var(--v-theme-background-lighten-1));
+        }
+
+        @include tablet-smartphone {
+            height: 40px;
+            font-size: 14px;
+            padding: 0px 12px;
+        }
+
+        &--dark {
+            @include tablet-smartphone {
+                width: 100%;
+                justify-content: center;
+            }
         }
     }
 
@@ -112,12 +141,24 @@
         align-items: center;
         gap: 20px;
         margin-top: 28px;
+
+        @include tablet-smartphone {
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 20px;
+            gap: 16px;
+        }
+
+        @include smartphone {
+            gap: 20px;
+        }
     }
 
     &__logo {
         padding: 8px;
         border-radius: 8px;
         margin-left: -8px;
+        flex-shrink: 0;
 
         img {
             display: block;
@@ -127,9 +168,15 @@
 
     &__links {
         display: flex;
-        gap: 16px;
+        flex-wrap: wrap;
+        gap: 8px 16px;
         font-weight: 700;
         font-size: 15px;
+
+        @include smartphone {
+            gap: 8px 16px;
+            font-size: 14px;
+        }
 
         a {
             color: rgb(var(--v-theme-text-darken-1));
@@ -148,18 +195,37 @@
         align-items: flex-end;
         gap: 16px;
         margin-left: auto;
+
+        @include tablet-smartphone {
+            width: 100%;
+            align-items: flex-start;
+            margin-left: 0;
+        }
+
+        @include smartphone {
+            gap: 20px;
+        }
     }
 
     &__company-links {
         display: flex;
-        gap: 16px;
+        flex-wrap: wrap;
+        gap: 8px 16px;
         margin-left: auto;
         font-size: 15px;
+
+        @include tablet-smartphone {
+            margin-left: 0;
+        }
+
+        @include smartphone {
+            gap: 8px 16px;
+            font-size: 13px;
+        }
 
         a {
             color: rgb(var(--v-theme-text-darken-1));
             transition: color 0.2s;
-            flex-shrink: 0;
 
             &:hover {
                 color: rgb(var(--v-theme-primary));
@@ -169,7 +235,11 @@
 
     &__copyright {
         color: rgb(var(--v-theme-text-darken-1));
-        font-size: 15px;
+        font-size: 14.5px;
+
+        @include smartphone {
+            font-size: 12.5px;
+        }
     }
 }
 
