@@ -344,7 +344,7 @@
                                         </div>
                                         <draggable
                                             v-model="style.voice_samples"
-                                            item-key="transcript"
+                                            :item-key="(item, index) => `voice-sample-${speaker.uuid}-${style.local_id}-${index}`"
                                             :disabled="!isMetadataEditable"
                                             handle=".aivm-voice-sample__drag-handle"
                                             ghost-class="aivm-voice-sample--ghost"
