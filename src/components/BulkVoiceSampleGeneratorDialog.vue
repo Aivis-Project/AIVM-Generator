@@ -41,7 +41,22 @@
                         thumb-label
                         hide-details
                     ></v-slider>
-                    <div class="mb-1">
+                    <div class="mb-1 mt-2">
+                        <p class="mb-0">話速（値が大きいほど速く話し、値が小さいほどゆっくり話す）</p>
+                    </div>
+                    <v-slider
+                        v-model="speedScale"
+                        min="0.5"
+                        max="2"
+                        step="0.05"
+                        :disabled="isGeneratingBulkVoiceSamples"
+                        color="primary"
+                        density="compact"
+                        show-ticks="always"
+                        thumb-label
+                        hide-details
+                    ></v-slider>
+                    <div class="mb-1 mt-2">
                         <p class="mb-0">テンポの緩急（値が大きいほど、より早口で生っぽい抑揚がついた声になる）</p>
                     </div>
                     <v-slider
@@ -85,7 +100,16 @@
                     {{ isGeneratingBulkVoiceSamples ? 'キャンセル' : '閉じる' }}
                 </v-btn>
                 <v-btn
+                    color="grey"
+                    variant="text"
+                    :disabled="isGeneratingBulkVoiceSamples"
+                    @click="resetToDefaults"
+                >
+                    リセット
+                </v-btn>
+                <v-btn
                     color="primary"
+                    variant="flat"
                     :loading="isGeneratingBulkVoiceSamples && bulkGenerationStatusMessage.includes('準備中')"
                     @click="startGeneration"
                     :disabled="isGeneratingBulkVoiceSamples || !isFFmpegLoaded || bulkGenerationTextsInput.trim() === ''"
@@ -102,7 +126,7 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import Aivmlib, { AivmMetadata } from 'aivmlib-web';
 import md5 from 'crypto-js/md5';
 import * as uuid from 'uuid';
-import { ref, computed, watch, PropType, defineProps, defineEmits } from 'vue';
+import { ref, computed, watch, PropType, defineProps, defineEmits, onMounted } from 'vue';
 
 import Message from '@/message';
 import Utils from '@/utils';
@@ -145,12 +169,34 @@ const props = defineProps({
 
 const emit = defineEmits(['complete', 'cancel']);
 
+// localStorage のキー定数
+const STORAGE_KEYS = {
+    BULK_GENERATION_TEXTS: 'AIVMGenerator-BulkGenerationTexts',
+    INTONATION_SCALE: 'AIVMGenerator-IntonationScale',
+    SPEED_SCALE: 'AIVMGenerator-SpeedScale',
+    TEMPO_DYNAMICS_SCALE: 'AIVMGenerator-TempoDynamicsScale',
+};
+
+// デフォルトテキスト
+const DEFAULT_TEXTS =
+    'おはようございます！現在時刻は7時30分です。今日の東京の気温は18度で、天気は雨です。10時からミーティング、午後3時に歯医者の予約があります。今日も素敵な一日になりますように。\n' +
+    'やった〜！テストでようやく満点取れた〜！めちゃくちゃ嬉しい…。　そうそう、さっき読んでたこの漫画がめっちゃ面白くてさ〜！見てよこれ！\n' +
+    'ごめんね、今ちょっと風邪気味なんだよね…。それでもよければ会いたいけど、どう？　…………そっか…。コロナ流行ってるもんね。じゃまた今度にしようか。…元気になったらぜひご飯でも！';
+
+// デフォルト値定数
+const DEFAULT_VALUES = {
+    INTONATION_SCALE: 1.3,
+    SPEED_SCALE: 1.0,
+    TEMPO_DYNAMICS_SCALE: 1.0,
+};
+
 // --- コンポーネントの状態 ---
 const bulkGenerationTextsInput = ref('');
 const bulkGenerationTexts = computed(() => bulkGenerationTextsInput.value.split('\n').map(t => t.trim()).filter(t => t !== ''));
 const aivisSpeechApiBaseUrl = ref('http://localhost:10101');
-const intonationScale = ref(1.3); // デフォルト値、各話者でスタイルを少し強めに出すために 1.3 に設定
-const tempoDynamicsScale = ref(1.0); // デフォルト値
+const intonationScale = ref(DEFAULT_VALUES.INTONATION_SCALE); // デフォルト値、各話者でスタイルを少し強めに出すために 1.3 に設定
+const speedScale = ref(DEFAULT_VALUES.SPEED_SCALE); // デフォルト値
+const tempoDynamicsScale = ref(DEFAULT_VALUES.TEMPO_DYNAMICS_SCALE); // デフォルト値
 const isGeneratingBulkVoiceSamples = ref(false);
 const bulkGenerationProgress = ref(0);
 const bulkGenerationCurrentStep = ref(0);
@@ -161,16 +207,84 @@ const temporaryModelUuid = ref<string | null>(null);
 let bulkGenerationAbortController: AbortController | null = null;
 // --- コンポーネントの状態ここまで ---
 
+// localStorage から値を読み込む関数
+function loadFromLocalStorage() {
+    try {
+        // テキストの読み込み
+        const savedTexts = localStorage.getItem(STORAGE_KEYS.BULK_GENERATION_TEXTS);
+        if (savedTexts) {
+            bulkGenerationTextsInput.value = savedTexts;
+        } else {
+            bulkGenerationTextsInput.value = DEFAULT_TEXTS;
+        }
+
+        // intonationScale の読み込み
+        const savedIntonationScale = localStorage.getItem(STORAGE_KEYS.INTONATION_SCALE);
+        if (savedIntonationScale) {
+            const parsedValue = parseFloat(savedIntonationScale);
+            if (!isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 2) {
+                intonationScale.value = parsedValue;
+            }
+        }
+
+        // speedScale の読み込み
+        const savedSpeedScale = localStorage.getItem(STORAGE_KEYS.SPEED_SCALE);
+        if (savedSpeedScale) {
+            const parsedValue = parseFloat(savedSpeedScale);
+            if (!isNaN(parsedValue) && parsedValue >= 0.5 && parsedValue <= 2) {
+                speedScale.value = parsedValue;
+            }
+        }
+
+        // tempoDynamicsScale の読み込み
+        const savedTempoDynamicsScale = localStorage.getItem(STORAGE_KEYS.TEMPO_DYNAMICS_SCALE);
+        if (savedTempoDynamicsScale) {
+            const parsedValue = parseFloat(savedTempoDynamicsScale);
+            if (!isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 2) {
+                tempoDynamicsScale.value = parsedValue;
+            }
+        }
+    } catch (ex) {
+        console.warn('localStorage からの読み込みに失敗しました:', ex);
+        // エラーの場合はデフォルト値を設定
+        resetToDefaults();
+    }
+}
+
+// localStorage に値を保存する関数
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.BULK_GENERATION_TEXTS, bulkGenerationTextsInput.value);
+        localStorage.setItem(STORAGE_KEYS.INTONATION_SCALE, intonationScale.value.toString());
+        localStorage.setItem(STORAGE_KEYS.SPEED_SCALE, speedScale.value.toString());
+        localStorage.setItem(STORAGE_KEYS.TEMPO_DYNAMICS_SCALE, tempoDynamicsScale.value.toString());
+    } catch (ex) {
+        console.warn('localStorage への保存に失敗しました:', ex);
+    }
+}
+
+// デフォルト値にリセットする関数
+function resetToDefaults() {
+    bulkGenerationTextsInput.value = DEFAULT_TEXTS;
+    intonationScale.value = DEFAULT_VALUES.INTONATION_SCALE;
+    speedScale.value = DEFAULT_VALUES.SPEED_SCALE;
+    tempoDynamicsScale.value = DEFAULT_VALUES.TEMPO_DYNAMICS_SCALE;
+}
+
+// コンポーネントマウント時に localStorage から値を読み込み
+onMounted(() => {
+    loadFromLocalStorage();
+});
+
+// 値が変更されたときに localStorage に保存
+watch(bulkGenerationTextsInput, saveToLocalStorage);
+watch(intonationScale, saveToLocalStorage);
+watch(speedScale, saveToLocalStorage);
+watch(tempoDynamicsScale, saveToLocalStorage);
+
 watch(() => props.modelValue, (newValue) => {
     if (newValue) {
-        // ダイアログが開いたときに状態をリセット
-        bulkGenerationTextsInput.value = ( // デフォルトテキストをリセット
-            'おはようございます！現在時刻は7時30分です。今日の東京の気温は18度で、天気は雨です。10時からミーティング、午後3時に歯医者の予約があります。今日も素敵な一日になりますように。\n' +
-            'やった〜！テストでようやく満点取れた〜！めちゃくちゃ嬉しい…。　そうそう、さっき読んでたこの漫画がめっちゃ面白くてさ〜！見てよこれ！\n' +
-            'ごめんね、今ちょっと風邪気味なんだよね…。それでもよければ会いたいけど、どう？　…………そっか…。コロナ流行ってるもんね。じゃまた今度にしようか。…元気になったらぜひご飯でも！'
-        );
-        intonationScale.value = 1.3; // リセット
-        tempoDynamicsScale.value = 1.0; // リセット
+        // ダイアログが開いたときに他の状態のみリセット（テキストとパラメータは保持）
         bulkGenerationProgress.value = 0;
         bulkGenerationCurrentStep.value = 0;
         bulkGenerationTotalSteps.value = 0;
@@ -383,6 +497,7 @@ async function synthesizeSpeech(baseUrl: string, text: string, styleId: number):
         const audioQuery = await queryResponse.json();
         // フォームで設定された値を使用
         audioQuery.intonationScale = intonationScale.value;
+        audioQuery.speedScale = speedScale.value;
         audioQuery.tempoDynamicsScale = tempoDynamicsScale.value;
 
         // 2. synthesis
