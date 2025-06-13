@@ -1,5 +1,5 @@
 <template>
-    <v-dialog :model-value="modelValue" persistent max-width="780px" @update:modelValue="!$event && cancelGeneration()">
+    <v-dialog :model-value="modelValue" persistent max-width="790px" @update:modelValue="!$event && cancelGeneration()">
         <v-card>
             <v-card-title class="px-6 pt-5 pb-0 font-weight-bold">ボイスサンプルを一括生成</v-card-title>
             <v-card-text class="px-6">
