@@ -171,12 +171,18 @@
         <v-form ref="form" @submit.prevent>
             <div class="mt-5 d-flex" style="gap: 20px;">
                 <div class="w-100">
-                    <v-text-field variant="solo-filled" density="compact" hide-details
+                    <v-text-field variant="solo-filled" density="compact" maxlength="80" hide-details
                         label="音声合成モデルの名前 (最大 80 文字 / 単独話者モデルでは話者名と自動同期されます)" :disabled="!isMetadataEditable" v-model="aivmManifest.name"
-                        :rules="[v => !!v || '音声合成モデルの名前は必須です。']" />
+                        :rules="[
+                            v => !!v || '音声合成モデルの名前は必須です。',
+                            v => (v && v.length <= 80) || '音声合成モデルの名前は80文字以内で入力してください。'
+                        ]" />
                     <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details
                         label="音声合成モデルの制作者 (複数追加・省略可)" :disabled="!isMetadataEditable" v-model="aivmManifest.creators"
-                        multiple chips closable-chips>
+                        multiple chips closable-chips
+                        :rules="[
+                            items => items.every(item => item.length <= 255) || '各制作者名は255文字以内で入力してください。'
+                        ]">
                         <template v-slot:no-data>
                             <v-list-item>
                                 <v-list-item-title>
@@ -190,8 +196,11 @@
                         制作者名には <a class="link" href="https://docs.npmjs.com/cli/v10/configuring-npm/package-json#people-fields-author-contributors" target="_blank">npm package.json の "author", "contributors" に指定できるもの</a> と同じ書式を利用できます。<br>
                         例: "John Doe" / "Jane Doe &lt;jane.doe@example.com&gt;" / "John Doe &lt;john.doe@example.com&gt; (https://example.com)"
                     </div>
-                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" hide-details
-                        label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isMetadataEditable" v-model="aivmManifest.description" />
+                    <v-textarea variant="solo-filled" class="mt-3" density="compact" rows="4" maxlength="140" hide-details
+                        label="音声合成モデルの簡潔な説明 (最大 140 文字 / 省略可)" :disabled="!isMetadataEditable" v-model="aivmManifest.description"
+                        :rules="[
+                            v => (!v || v.length <= 140) || '説明は140文字以内で入力してください。'
+                        ]" />
                     <v-select variant="solo-filled" class="mt-3" density="compact" hide-details
                         label="音声合成モデルのライセンス" :disabled="!isMetadataEditable" v-model="selectedLicense"
                         :items="['ACML (Aivis Common Model License)', 'ACML-NC (Aivis Common Model License - Non Commercial)', 'パブリックドメイン (CC0)', 'カスタムライセンス', 'この音声合成モデルの公開・配布を行わない']" />
@@ -263,9 +272,12 @@
                             <Icon class="aivm-speaker-style__icon-edit" icon="fluent:edit-16-filled" height="30px" />
                         </div>
                         <div class="w-100">
-                            <v-text-field variant="solo-filled" density="compact" hide-details
+                            <v-text-field variant="solo-filled" density="compact" maxlength="80" hide-details
                                 label="話者の名前 (最大 80 文字 / 単独話者モデルではモデル名と自動同期されます)" :disabled="!isMetadataEditable" v-model="speaker.name"
-                                :rules="[v => !!v || '話者の名前は必須です。']" />
+                                :rules="[
+                                    v => !!v || '話者の名前は必須です。',
+                                    v => (v && v.length <= 80) || '話者の名前は80文字以内で入力してください。'
+                                ]" />
                             <v-combobox variant="solo-filled" class="mt-3" density="compact" hide-details readonly multiple chips
                                 label="話者の対応言語 (BCP 47 言語タグ / 読み取り専用)" :disabled="!isMetadataEditable" v-model="speaker.supported_languages" />
                         </div>
@@ -314,9 +326,12 @@
                                     </div>
                                     <div class="d-flex align-center" style="height: 120px;">
                                         <div class="w-100">
-                                            <v-text-field variant="solo-filled" class="w-100" density="compact" hide-details
+                                            <v-text-field variant="solo-filled" class="w-100" density="compact" maxlength="20" hide-details
                                                 label="スタイルの名前 (最大 20 文字)" :disabled="!isMetadataEditable" v-model="style.name"
-                                                :rules="[v => !!v || 'スタイルの名前は必須です。']" />
+                                                :rules="[
+                                                    v => !!v || 'スタイルの名前は必須です。',
+                                                    v => (v && v.length <= 20) || 'スタイルの名前は20文字以内で入力してください。'
+                                                ]" />
                                             <v-text-field variant="solo-filled" class="w-100 mt-3" density="compact" hide-details readonly
                                                 label="スタイルのローカル ID (読み取り専用)" :disabled="!isMetadataEditable" v-model="style.local_id" />
                                         </div>
@@ -369,7 +384,10 @@
                                                         </div>
                                                         <v-text-field variant="solo-filled" density="compact" hide-details
                                                             label="ボイスサンプルの書き起こし文 (必須)" v-model="voiceSample.transcript"
-                                                            :rules="[v => !!v || '書き起こし文は必須です。']" />
+                                                            :rules="[
+                                                                v => !!v || '書き起こし文は必須です。',
+                                                                v => (v && v.trim().length >= 1) || '書き起こし文は1文字以上入力してください。'
+                                                            ]" />
                                                     </div>
                                                     <ActionButton icon="fluent:delete-16-filled" class="ml-3" font_size="13.5px"
                                                         :disabled="(voiceSampleEncodingStatus[getVoiceSampleKey(speaker.uuid, style.local_id, sampleIndex)] ?? false)"
