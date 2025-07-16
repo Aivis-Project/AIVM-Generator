@@ -33,7 +33,7 @@
             </div>
         </Description>
         <Description class="mt-4" style="word-break: keep-all; overflow-wrap: anywhere;">
-            <strong>このサイトでは、<a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a> などで使える AI 音声合成モデルファイル (AIVM / AIVMX) を、簡単に作成・編集できます。</strong>
+            <strong>このサイトでは、<a class="link" href="https://aivis-project.com/speech/" target="_blank">AivisSpeech</a>  や <a class="link" href="https://aivis-project.com/cloud-api/" target="_blank">Aivis Cloud API</a> で使える AI 音声合成モデルファイル (AIVM / AIVMX) を、簡単に作成・編集できます。</strong>
         </Description>
         <Description class="mt-1">
             <b>AIVM</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel) / <b>AIVMX</b> (<b>Ai</b>vis <b>V</b>oice <b>M</b>odel for ONN<b>X</b>) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ<wbr>（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。<br>
@@ -424,6 +424,7 @@
                 <li><strong>AIVM (.aivm)</strong>: モデルミックスによる新しい声質の作成やファインチューニングが可能な形式です。
                     <ul class="ml-5">
                         <li>おもに NVIDIA GPU での利用に特化しています。(PyTorch + Safetensors モデル)</li>
+                        <li>GPU で高速に音声合成を行うため、Aivis Cloud API の内部では AIVM ファイルを使用しています。</li>
                     </ul>
                 </li>
                 <li><strong>AIVMX (.aivmx)</strong>: より多くの環境で音声合成を実行できる形式です。
