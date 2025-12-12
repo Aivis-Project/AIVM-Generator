@@ -60,7 +60,7 @@
             <strong>Style-Bert-VITS2 で作成した Safetensors モデルはあるが、ONNX モデルをお持ちでない場合、下のフォームからかんたんに変換できます。</strong><br>
             「変換開始」ボタンを押すと、モデルファイルが変換サーバーに送信され、変換処理が始まります。変換には数分程度かかります。<br>
             変換が完了すると、ONNX モデルが自動的にダウンロードされます。変換後にサーバー上のファイルは直ちに削除されますので、ご安心ください。<br>
-            ※現在開発中につきまだ動作しません（2025年中に実装予定）。今すぐ Style-Bert-VITS2 で作成したモデルを ONNX に変換したい方は最新の dev ブランチに切り替えた上で <a class="link" href="https://github.com/litagin02/Style-Bert-VITS2/blob/dev/convert_onnx.py" target="_blank">こちらの ONNX 変換スクリプト</a> をご利用ください（デベロッパー向け）。<br>
+            ※現在開発中につきまだ動作しません（2025年中に実装予定）。今すぐ Style-Bert-VITS2 で作成したモデルを ONNX に変換したい方は <a class="link" href="https://github.com/litagin02/Style-Bert-VITS2/blob/master/convert_onnx.py" target="_blank">こちらの ONNX 変換スクリプト</a> をご利用ください（デベロッパー向け）。<br>
             <div class="mt-3 d-flex align-center" style="gap: 12px;">
                 <div class="d-flex flex-column" style="flex: 1;">
                     <v-file-input variant="solo-filled" density="compact" show-size hide-details
