@@ -27,7 +27,9 @@
                         モデルサイズを簡単に削減できますので、以前音声合成モデルを制作された方もぜひ一度お試しください！🙏
                     </div>
                     <div>
-                        ⚠️ Style-Bert-VITS2 で作成した Safetensors モデルを ONNX に変換する機能はもうしばらくお待ちください！今年中に実装予定です。<br>
+                        <strong>🔧 [NEW!] Style-Bert-VITS2 で作成した Safetensors モデルを、ブラウザから直接 ONNX 形式に変換できるようになりました！</strong><br>
+                        下の ONNX 変換フォームから Safetensors モデル・ハイパーパラメータ・スタイルベクトルの 3 ファイルを選択して
+                        「変換開始」を押すだけで、変換後の ONNX モデルが自動的にダウンロードされ、そのまま AIVMX ファイルの生成に進むことができます。
                     </div>
                 </div>
             </div>
@@ -59,21 +61,51 @@
             word-break: keep-all; overflow-wrap: anywhere;">
             <strong>Style-Bert-VITS2 で作成した Safetensors モデルはあるが、ONNX モデルをお持ちでない場合、下のフォームからかんたんに変換できます。</strong><br>
             「変換開始」ボタンを押すと、モデルファイルが変換サーバーに送信され、変換処理が始まります。変換には数分程度かかります。<br>
-            変換が完了すると、ONNX モデルが自動的にダウンロードされます。変換後にサーバー上のファイルは直ちに削除されますので、ご安心ください。<br>
-            ※現在開発中につきまだ動作しません（2025年中に実装予定）。今すぐ Style-Bert-VITS2 で作成したモデルを ONNX に変換したい方は <a class="link" href="https://github.com/litagin02/Style-Bert-VITS2/blob/master/convert_onnx.py" target="_blank">こちらの ONNX 変換スクリプト</a> をご利用ください（デベロッパー向け）。<br>
+            変換が完了すると ONNX モデルが自動的にダウンロードされ、下の「各ファイルから新規生成」のファイル選択欄にも自動設定されます。<br>
+            変換後にサーバー上のファイルは直ちに削除されますので、ご安心ください。<br>
             <div class="mt-3 d-flex align-center" style="gap: 12px;">
                 <div class="d-flex flex-column" style="flex: 1;">
                     <v-file-input variant="solo-filled" density="compact" show-size hide-details
-                        label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="convertTargetModel" style="flex: 1;" />
+                        label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="convertTargetModel"
+                        :disabled="isConvertingModel" style="flex: 1;" />
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="ハイパーパラメータ (config.json) を選択" accept=".json"
-                        v-model="convertTargetHyperParameters" />
+                        v-model="convertTargetHyperParameters" :disabled="isConvertingModel" />
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
-                        label="スタイルベクトル (style_vectors.npy) を選択" accept=".npy" v-model="convertTargetStyleVectors" />
+                        label="スタイルベクトル (style_vectors.npy) を選択" accept=".npy" v-model="convertTargetStyleVectors"
+                        :disabled="isConvertingModel" />
                 </div>
-                <v-btn color="primary" @click="convertModel" disabled>
+                <v-btn color="primary" @click="convertModel" :disabled="isConvertingModel || !isConvertAllFilesSelected">
                     変換開始
                 </v-btn>
+            </div>
+            <!-- ONNX 変換の進捗表示 (変換中のみ表示) -->
+            <div v-if="isConvertingModel" class="mt-4">
+                <!-- アップロードフェーズ: 0-100% のプログレスバー -->
+                <v-progress-linear v-if="convertProgress.phase === 'uploading'"
+                    :model-value="convertProgress.uploadPercent * 100" color="primary" height="20" stream rounded>
+                    <template v-slot:default="{ value }">
+                        <strong style="color: white;">{{ Math.ceil(value) }}%</strong>
+                    </template>
+                </v-progress-linear>
+                <!-- 変換フェーズ: 不定形プログレスバー -->
+                <v-progress-linear v-else-if="convertProgress.phase === 'converting'"
+                    indeterminate color="primary" height="20" rounded>
+                    <template v-slot:default>
+                        <strong style="color: white;">変換中...</strong>
+                    </template>
+                </v-progress-linear>
+                <!-- ダウンロードフェーズ: 0-100% のプログレスバー -->
+                <v-progress-linear v-else-if="convertProgress.phase === 'downloading'"
+                    :model-value="convertProgress.downloadPercent * 100" color="primary" height="20" stream rounded>
+                    <template v-slot:default="{ value }">
+                        <strong style="color: white;">{{ Math.ceil(value) }}%</strong>
+                    </template>
+                </v-progress-linear>
+                <!-- ステータスメッセージ -->
+                <p class="mt-2" style="font-size: 13px; text-align: center; min-height: 18px;">
+                    {{ convertProgress.statusMessage }}
+                </p>
             </div>
         </Description>
         <v-tabs class="mt-0" color="primary" bg-color="transparent" align-tabs="center" v-model="selectionTypeTabIndex">
@@ -84,8 +116,6 @@
         </v-tabs>
          <v-window v-model="selectionTypeTabIndex">
             <v-window-item class="pt-4 pb-5">
-                <v-select variant="solo-filled" density="compact" hide-details :items="['Style-Bert-VITS2 (JP-Extra)', 'Style-Bert-VITS2']"
-                    label="音声合成モデルのアーキテクチャを選択" v-model="selectedArchitecture" />
                 <div class="d-flex" style="gap: 12px;">
                     <v-file-input variant="solo-filled" class="mt-3" density="compact" show-size hide-details
                         label="学習済みモデル (.safetensors) を選択" accept=".safetensors" v-model="selectedSafetensorsModel" style="flex: 1;" />
@@ -496,7 +526,31 @@ const convertTargetModel = ref<File | File[] | undefined>(undefined);
 const convertTargetHyperParameters = ref<File | File[] | undefined>(undefined);
 const convertTargetStyleVectors = ref<File | File[] | undefined>(undefined);
 
+// ONNX 変換中かどうかのフラグ
+const isConvertingModel = ref(false);
+
+// ONNX 変換の進捗状態
+const convertProgress = ref<{
+    phase: 'uploading' | 'converting' | 'downloading';
+    uploadPercent: number;
+    downloadPercent: number;
+    statusMessage: string;
+}>({
+    phase: 'uploading',
+    uploadPercent: 0,
+    downloadPercent: 0,
+    statusMessage: '',
+});
+
+// ONNX 変換用の全ファイルが選択されているかどうか
+const isConvertAllFilesSelected = computed(() => {
+    return convertTargetModel.value !== undefined &&
+        convertTargetHyperParameters.value !== undefined &&
+        convertTargetStyleVectors.value !== undefined;
+});
+
 // ONNX 変換を実行する関数
+// fetch API ではアップロード進捗を取得できないため、XMLHttpRequest を使用する
 const convertModel = async () => {
 
     // ファイルが選択されていない場合は処理を中断
@@ -508,43 +562,144 @@ const convertModel = async () => {
         Message.error('ハイパーパラメータとスタイルベクトルを選択してください。');
         return;
     }
-    // 現時点では未実装のため警告を表示
-    Message.warning('ONNX 変換機能は現在実装中です。もうしばらくお待ちください。');
-    return;
 
-    // eslint-disable-next-line no-unreachable
+    // 変換中フラグを設定し、進捗状態を初期化
+    isConvertingModel.value = true;
+    convertProgress.value = {
+        phase: 'uploading',
+        uploadPercent: 0,
+        downloadPercent: 0,
+        statusMessage: 'アップロードを準備しています...',
+    };
+
     try {
         // FormData を作成
-        const form_data = new FormData();
-        form_data.append('model', convertTargetModel.value as File);
-        form_data.append('hyper_parameters', convertTargetHyperParameters.value as File);
-        form_data.append('style_vectors', convertTargetStyleVectors.value as File);
+        // バックエンド API のフィールド名: safetensors_file, config_file, style_vectors_file
+        const formData = new FormData();
+        formData.append('safetensors_file', convertTargetModel.value as File);
+        formData.append('config_file', convertTargetHyperParameters.value as File);
+        formData.append('style_vectors_file', convertTargetStyleVectors.value as File);
 
-        // API にリクエストを送信
-        // Note: API エンドポイントは仮のものです
-        const response = await fetch('/api/convert-to-onnx', {
-            method: 'POST',
-            body: form_data,
+        // XMLHttpRequest でアップロード & ダウンロードを実行
+        // XMLHttpRequest を使用する理由:
+        // - xhr.upload.onprogress でアップロード進捗を取得できる (fetch API では不可能)
+        // - xhr.onprogress でダウンロード進捗を取得できる
+        // - xhr.upload.onload でアップロード完了を検知し、変換フェーズに遷移できる
+        const resultBlob = await new Promise<Blob>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.aivis-project.com/v1/tools/convert-to-onnx');
+            xhr.responseType = 'blob';
+
+            // アップロード進捗イベント
+            xhr.upload.onprogress = (event: ProgressEvent) => {
+                if (event.lengthComputable) {
+                    convertProgress.value.uploadPercent = event.loaded / event.total;
+                    const loadedMb = (event.loaded / (1024 * 1024)).toFixed(1);
+                    const totalMb = (event.total / (1024 * 1024)).toFixed(1);
+                    convertProgress.value.statusMessage = `アップロード中: ${loadedMb} MB / ${totalMb} MB`;
+                }
+            };
+
+            // アップロード完了 → サーバーでの変換処理フェーズに移行
+            xhr.upload.onload = () => {
+                convertProgress.value.phase = 'converting';
+                convertProgress.value.uploadPercent = 1;
+                convertProgress.value.statusMessage = 'サーバーで ONNX 変換処理を実行中です... (数分かかる場合があります)';
+            };
+
+            // ダウンロード進捗イベント (レスポンス受信時)
+            xhr.onprogress = (event: ProgressEvent) => {
+                // レスポンスのダウンロードが開始されたらフェーズを downloading に切り替える
+                convertProgress.value.phase = 'downloading';
+                if (event.lengthComputable) {
+                    convertProgress.value.downloadPercent = event.loaded / event.total;
+                    const loadedMb = (event.loaded / (1024 * 1024)).toFixed(1);
+                    const totalMb = (event.total / (1024 * 1024)).toFixed(1);
+                    convertProgress.value.statusMessage = `ダウンロード中: ${loadedMb} MB / ${totalMb} MB`;
+                } else {
+                    // Content-Length がない場合は読み取り済みバイト数のみを表示
+                    const loadedMb = (event.loaded / (1024 * 1024)).toFixed(1);
+                    convertProgress.value.statusMessage = `ダウンロード中: ${loadedMb} MB`;
+                }
+            };
+
+            // リクエスト完了
+            xhr.onload = () => {
+                // HTTP ステータスコードが 200 番台の場合は成功
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(xhr.response as Blob);
+                } else {
+                    // エラーレスポンスは JSON で返されるが、responseType が 'blob' のため Blob として受信される
+                    // Blob からテキストを読み取ってエラーメッセージを抽出する
+                    const errorBlob = xhr.response as Blob;
+                    errorBlob.text().then((errorText) => {
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            reject(new Error(errorJson.detail || `HTTP ${xhr.status}: ${errorText}`));
+                        } catch {
+                            reject(new Error(`HTTP ${xhr.status}: ${errorText}`));
+                        }
+                    }).catch(() => {
+                        reject(new Error(`HTTP ${xhr.status}: レスポンスの読み取りに失敗しました。`));
+                    });
+                }
+            };
+
+            // ネットワークエラー
+            xhr.onerror = () => {
+                reject(new Error('ネットワークエラーが発生しました。インターネット接続を確認してください。'));
+            };
+
+            // タイムアウト (10分 = 600000ms)
+            // 大きなモデルの変換には数分かかる可能性があるため、十分な時間を設定する
+            xhr.timeout = 600000;
+            xhr.ontimeout = () => {
+                reject(new Error('リクエストがタイムアウトしました。変換処理に時間がかかりすぎている可能性があります。'));
+            };
+
+            // リクエスト送信
+            xhr.send(formData);
         });
-        if (!response.ok) {
-            Message.error(`ONNX モデルへの変換に失敗しました。(HTTP Error ${response.status})`);
-            return;
-        }
 
-        // レスポンスから Blob を取得
-        const blob = await response.blob();
+        // 変換結果を自動ダウンロード
+        const safetensorsFilename = (convertTargetModel.value as File).name;
+        const onnxFilename = safetensorsFilename.replace(/\.safetensors$/, '.onnx');
+        Utils.downloadBlobData(resultBlob, onnxFilename);
 
-        // ダウンロードリンクを作成して自動ダウンロードを実行
-        Utils.downloadBlobData(blob, (convertTargetModel.value as File).name.replace('.safetensors', '.onnx'));
-        Message.success('ONNX モデルへの変換が完了しました。');
+        // 変換結果を「1. ファイル選択」の「各ファイルから新規生成」タブに自動設定
+        // v-file-input の v-model に File オブジェクトを直接代入することで反映できる
+        selectionTypeTabIndex.value = 0;
+
+        // ONNX 変換フォームで選択済みのファイルをそのまま「1. ファイル選択」にも設定
+        selectedSafetensorsModel.value = convertTargetModel.value;
+        selectedHyperParameters.value = convertTargetHyperParameters.value;
+        selectedStyleVectors.value = convertTargetStyleVectors.value;
+
+        // 変換結果の ONNX Blob を File オブジェクトに変換して selectedOnnxModel に設定
+        const onnxFile = new File([resultBlob], onnxFilename, { type: 'application/octet-stream' });
+        selectedOnnxModel.value = onnxFile;
+
+        // 成功メッセージを表示 (10秒間)
+        Message.success(
+            'ONNX モデルへの変換が完了しました。\n' +
+            '変換結果は自動ダウンロードされ、「各ファイルから新規生成」にも自動設定しました。\n' +
+            'このままメタデータを設定して AIVM / AIVMX ファイルを生成できます。',
+            15,
+        );
+
     } catch (error) {
-        Message.error(`ONNX モデルへの変換に失敗しました。${(error as Error).message}`);
+        console.error('ONNX conversion failed:', error);
+        const errorMessage = (error as Error).message || '不明なエラーが発生しました。';
+        // エラー時は 30 秒間 API から返されたエラーメッセージを表示
+        Message.error(`ONNX モデルへの変換に失敗しました。\n${errorMessage}`, 30);
+    } finally {
+        // 変換中フラグをリセット
+        isConvertingModel.value = false;
     }
 };
 
 // 1. ファイル選択 での状態
 const selectionTypeTabIndex = ref(0);
-const selectedArchitecture = ref<'Style-Bert-VITS2 (JP-Extra)' | 'Style-Bert-VITS2'>('Style-Bert-VITS2 (JP-Extra)');
 const selectedSafetensorsModel = ref<File | File[] | undefined>(undefined);
 const selectedOnnxModel = ref<File | File[] | undefined>(undefined);
 const selectedHyperParameters = ref<File | File[] | undefined>(undefined);
@@ -566,7 +721,7 @@ const isAllFilesSelected = computed(() => {
 
 // 1. ファイル選択 のいずれかの値が変更されたら、メタデータ編集の入力欄をリセット
 // その際全てのファイルが選択されていれば、 AIVM メタデータの生成 or 再読み込みを実行する
-watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, selectedHyperParameters, selectedStyleVectors, selectedAivm, selectedAivmx], () => {
+watch([selectedSafetensorsModel, selectedOnnxModel, selectedHyperParameters, selectedStyleVectors, selectedAivm, selectedAivmx], () => {
     currentAivmMetadata.value = null;
     speakerTabIndex.value = 0;
 
@@ -580,8 +735,10 @@ watch([selectedArchitecture, selectedSafetensorsModel, selectedOnnxModel, select
 function loadAivmMetadataFromFiles() {
     if (selectionTypeTabIndex.value === 0) {
         // 「各ファイルから新規生成」の場合
+        // アーキテクチャは aivmlib-web が config.json の use_jp_extra フラグから自動判定するため、
+        // 第一引数は型を満たすための固定値であり実際には参照されない
         Aivmlib.generateAivmMetadata(
-            selectedArchitecture.value,
+            'Style-Bert-VITS2 (JP-Extra)',
             selectedHyperParameters.value as File,
             selectedStyleVectors.value as File | null,
         ).then((metadata) => {
