@@ -21,7 +21,7 @@
                 <!-- Contact Button -->
                 <a v-ripple href="https://forms.gle/sTsZGfX7aR8ox8Rs7" target="_blank" class="footer__button footer__button--dark">
                     <Icon icon="majesticons:mail-line" width="21px" height="21px" />
-                    導入のご相談・資料請求
+                    導入のご相談・お問い合わせ
                 </a>
             </div>
 
