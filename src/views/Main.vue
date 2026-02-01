@@ -467,10 +467,15 @@
                 </li>
             </ul>
         </Description>
-        <div class="mt-5 d-flex justify-center">
+        <div class="mt-5 d-flex flex-column align-center ga-3">
             <ActionButton secondary icon="fluent:save-20-filled" height="45px" font_size="14px"
                 :disabled="!isMetadataEditable" @click="downloadAivmFile">
                 上記メタデータで AIVM / AIVMX ファイル (.aivm / .aivmx) を生成
+            </ActionButton>
+            <ActionButton icon="fluent:cloud-arrow-up-20-filled" height="45px" font_size="14px"
+                style="border: 2px solid rgb(var(--v-theme-secondary));"
+                @click="openAivisCloudAPIModelsPage">
+                生成した AIVM / AIVMX ファイルを Aivis Cloud API で使う
             </ActionButton>
         </div>
 
@@ -1148,6 +1153,11 @@ const selectAndEncodeVoiceSample = async (
         console.log(`Encoding process finished for sample: ${sampleKey}`);
     }
 };
+
+// Aivis Cloud API のモデル管理ページを別タブで開く
+function openAivisCloudAPIModelsPage() {
+    window.open('https://hub.aivis-project.com/cloud-api/models', '_blank');
+}
 
 // 3. AIVM / AIVMX ファイルを生成 での処理
 async function downloadAivmFile() {
