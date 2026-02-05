@@ -517,9 +517,24 @@ import { LICENSE_ACML, LICENSE_ACML_NC, LICENSE_CC0 } from '@/constants';
 import Message from '@/message';
 import Utils from '@/utils';
 
+// Safari かどうかを判定するフラグ
+// Safari の UA 文字列には "Version/X.Y Safari/X.Y" というパターンが含まれるが、
+// Chromium 系ブラウザ (Chrome, Edge, Opera など) には "Version/" トークンが含まれないため、
+// この正規表現で Safari のみを正確に判定できる
+// さらに念のため Chromium 系ブラウザの UA トークンが含まれていないことも確認する
+const isSafari = /Version\/[\d.]+ Safari\/[\d.]+/.test(navigator.userAgent)
+    && !/Chrome|Chromium|Edg|OPR|Vivaldi/.test(navigator.userAgent);
+
 // Safari の場合は警告を表示
-if (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')) {
-    Message.warning('Safari では動作検証を行なっておらず、正常に動作しない可能性があります。\n最新版の Chrome をご利用ください。');
+// Safari は複数ファイルの同時ダウンロードのブロックや、HTTPS ページから localhost への通信
+// (Mixed Content) のブロックなど、他のブラウザにはない制約が多く正常に動作しない機能がある
+if (isSafari === true) {
+    Message.warning(
+        'Safari は AIVM Generator に対応していません。\n' +
+        '複数ファイルの同時ダウンロードや AivisSpeech との連携など、主要な機能が正常に動作しません。\n' +
+        'AIVM Generator を利用するには、Google Chrome をお使いください。',
+        15,
+    );
 }
 // Firefox の場合は警告を表示
 if (navigator.userAgent.includes('Firefox')) {
@@ -1217,6 +1232,19 @@ const isBulkGenerationDialogVisible = ref(false);
  * 一括生成ダイアログを表示
  */
 function showBulkGenerationDialog() {
+    // Safari では HTTPS ページから localhost (HTTP) への通信が Mixed Content としてブロックされるため、
+    // AivisSpeech Engine API と通信するボイスサンプル一括生成機能は利用できない
+    if (isSafari === true) {
+        Message.error(
+            'Safari ではボイスサンプル一括生成機能を利用できません。\n' +
+            'この機能は PC 上の AivisSpeech Engine API (localhost) との通信が必要ですが、\n' +
+            'Safari は HTTPS ページから localhost への HTTP 通信をブロックする仕様のため動作しません。\n' +
+            'Google Chrome でこのページを開き直してください。',
+            15,
+        );
+        return;
+    }
+
     // ダイアログを表示する前のチェック
     if (!isMetadataEditable.value) {
         Message.error('ファイル選択とメタデータ編集が完了してから実行してください。');
