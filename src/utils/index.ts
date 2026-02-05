@@ -38,14 +38,16 @@ export default class Utils {
         // Blob URL を発行
         const blob_url = URL.createObjectURL(blob);
 
-        // 画像をダウンロード
+        // ダウンロードリンクを生成してクリック
         const link = document.createElement('a');
         link.download = filename;
         link.href = blob_url;
         link.click();
 
-        // Blob URL を破棄
-        URL.revokeObjectURL(blob_url);
+        // Safari ではダウンロードの開始が非同期で行われるため、link.click() の直後に
+        // revokeObjectURL() を呼ぶと Blob URL が無効化されダウンロードが失敗する可能性がある
+        // 十分な時間が経過してから Blob URL を破棄する
+        setTimeout(() => URL.revokeObjectURL(blob_url), 30000);
     }
 
 

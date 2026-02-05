@@ -1196,10 +1196,13 @@ async function downloadAivmFile() {
     Promise.all([
         Aivmlib.writeAivmMetadata(safetensorsFile, currentAivmMetadata.value),
         Aivmlib.writeAivmxMetadata(onnxFile, currentAivmMetadata.value),
-    ]).then(([aivmBlob, aivmxBlob]) => {
+    ]).then(async ([aivmBlob, aivmxBlob]) => {
         console.log('Generated AIVM metadata:', currentAivmMetadata.value);
         // モデル名をファイル名として両方をダウンロード
+        // Safari では複数ファイルの同時ダウンロードがセキュリティ機能としてブロックされるため、
+        // 1 秒の遅延を挟んで順次ダウンロードする
         Utils.downloadBlobData(aivmBlob, `${aivmManifest.value.name}.aivm`);
+        await Utils.sleep(1);
         Utils.downloadBlobData(aivmxBlob, `${aivmManifest.value.name}.aivmx`);
     }).catch((error) => {
         Message.error(error.message);
